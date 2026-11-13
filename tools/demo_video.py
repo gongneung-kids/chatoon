@@ -489,16 +489,41 @@ display:flex;align-items:center;justify-content:center}}
 </div><div class="shot"><img src="{comic.name}"></div></div>""", 12)
 
     add("trust", """<div class="wrap"><div class="kicker">지키는 것</div>
-<h2>운전에 끼어들지 않고, 차 밖으로 내보내지 않습니다.</h2>
+<h2>운전에 끼어들지 않고, 만화에 필요한 것만 씁니다.</h2>
 <p>· 주행 중에는 화면을 쓰지 않고, 세운 뒤에 봅니다</p>
-<p>· 지금은 차 안에서만 그립니다 — 서버·생성형 AI 없음</p>
-<p>· 위치·경로·카메라를 쓰지 않고, 기록은 차 안에 암호화해 저장합니다</p>
+<p>· 만화의 재료는 차량 신호 요약뿐 — 위치·경로·카메라·목소리 원본은 쓰지 않습니다</p>
+<p>· 기록은 차 안에 암호화해 저장하고, 언제든 지울 수 있습니다</p>
 <p>· 차를 바꾸는 것은 주인이 켠 실내 조명 연출 하나, 나머지는 읽기만 합니다</p></div>""", 8)
 
     add("demo", """<div class="wrap"><div class="kicker">실제 구동 화면</div>
 <h2>운전하고, 세우고, 답하면<br>만화가 그려지는 과정을 그대로 보여 드립니다.</h2>
 <p class="m">Pleos Connect v2.1.0 에뮬레이터에서 실제로 동작하는 앱 · 주행은 가상 콘솔로 재현 · 오른쪽은 차가 보내는 신호</p></div>""", 5)
     return slides
+
+
+def next_slide(work: Path) -> Path:
+    """다음 단계: 이야기(콘티)는 차가 짜고, 그림은 단계적으로 좋아진다. 생성형 AI 견본 그림은 앱이 만든 것이 아니라 넣지 않는다."""
+    out = work / "next.png"
+    slide_png("""<style>
+.flow{display:flex;align-items:stretch;gap:0;margin-top:10px}
+.box{flex:1;border-radius:22px;background:#1c1f24;padding:30px 30px;box-shadow:0 0 0 2px #2c3038}
+.box b{display:block;font-size:38px;margin-bottom:14px} .box span{display:block;font-size:27px;color:#b9c2cc;line-height:1.45}
+.core{box-shadow:0 0 0 3px #ffd54a}
+.tag{display:inline-block;font-size:22px;font-weight:700;color:#141414;background:#ffd54a;border-radius:10px;padding:3px 12px;margin-bottom:14px}
+.arrow{flex:none;width:70px;display:flex;align-items:center;justify-content:center;font-size:48px;color:#ffd54a}
+.split span{margin-bottom:12px} .split .now{color:#e8eaed} .split .next{color:#ffd54a}
+</style><div class="wrap"><div class="kicker">다음 단계</div>
+<h2 style="margin-bottom:46px">이야기는 차가 짜고, 그림은 단계적으로 좋아집니다.</h2>
+<div class="flow">
+<div class="box"><b>차량 신호</b><span>와이퍼 · 창문 · 공조 · 열선 · 급정거 · 주차</span></div>
+<div class="arrow">→</div>
+<div class="box core"><div class="tag">차툰의 핵심 · 지금 동작</div><b>콘티</b><span>그날의 순간 고르기 · 네 컷 구성 · 대사 · 근거 · 주인의 답</span></div>
+<div class="arrow">→</div>
+<div class="box split"><b>그림</b><span class="now">지금: 앱이 차 안에서 바로 그림(인터넷 없이)</span>
+<span class="next">다음: 같은 콘티를 생성형 AI가 그림 — 내 차 · 날씨 · 계절을 담아</span></div>
+</div>
+<p class="m" style="margin-top:44px">생성형 AI 그림은 주인이 켤 때만 · 보내는 것은 콘티뿐, 위치 · 경로 · 카메라 · 목소리 원본은 보내지 않습니다</p></div>""", out)
+    return out
 
 
 def end_slide(work: Path) -> Path:
@@ -648,10 +673,12 @@ def main() -> int:
                     clip = work / f"intro_{k:02d}.mp4"
                     still(image, seconds, clip)
                     intro_parts.append(clip)
+            nxt = work / "part_98.mp4"
+            still(next_slide(work), 9, nxt)
             end = work / "part_99.mp4"
             still(end_slide(work), 5, end)
             args.out.parent.mkdir(parents=True, exist_ok=True)
-            concat(intro_parts + demo_parts + [end], args.out, work)
+            concat(intro_parts + demo_parts + [nxt, end], args.out, work)
         probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", str(args.out)],
                                capture_output=True, text=True, check=True)
         seconds = float(json.loads(probe.stdout)["format"]["duration"])
