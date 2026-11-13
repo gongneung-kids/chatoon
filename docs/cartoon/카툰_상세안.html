@@ -465,8 +465,8 @@ h1{font-family:var(--font-display);font-weight:400;font-size:clamp(3rem,10vw,5.4
         <tr><td>주차를 몇 번 만에</td><td>주차 직전 2분 동안 기어를 바꾼 횟수</td><td class="say">주차는 세 번 만에 들어갔다. 지난주는 다섯 번.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
         <tr><td>문을 안 잠그고 감</td><td>주차 중 문 잠금(시동이 켜져 있는 동안)</td><td class="say">문을 안 잠그고 갔다. 내가 지켰다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
         <tr><td>깜빡이</td><td>조향각, 방향지시등, 속도(속도 권한을 켠 사람만)</td><td class="say">오늘은 돌 때마다 깜빡이를 켰다. 열두 번 전부.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
-        <tr><td>급하게 선 순간</td><td>1초에 시속 7.5km 넘게 줄어든 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 급하게 섰다. 나는 심장이 없는데도 멎는 줄 알았다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
-        <tr><td>세게 밟은 순간</td><td>1초에 시속 11km 넘게 늘어난 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 세게 밟았다. 나는 천천히 가는 것도 좋은데.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>급하게 선 순간</td><td>1초에 시속 7.5km 이상 줄어든 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 급하게 섰다. 나는 심장이 없는데도 멎는 줄 알았다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>세게 밟은 순간</td><td>1초에 시속 11km 이상 늘어난 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 세게 밟았다. 나는 천천히 가는 것도 좋은데.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
         <tr><td>해 진 뒤, 한밤 외출</td><td>출발 시각과 기기 안 일몰 계산</td><td class="say">평소라면 주차장에서 자고 있을 시간이다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
         <tr><td>쉬지 않고 두 시간</td><td>기어 P→D→P 사이의 시간. 휴게소 찾기로 이어짐</td><td class="say">두 시간을 한 번도 안 쉬었다. 나는 괜찮은데 주인이 걱정이다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
         <tr><td>처음 있는 일</td><td>지금까지 기록에 없던 조합</td><td class="say">처음으로 밤에 비를 맞았다. 둘 다 긴장했다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
@@ -1013,13 +1013,13 @@ h1{font-family:var(--font-display);font-weight:400;font-size:clamp(3rem,10vw,5.4
     },
     brake: {
       title: '급하게 선 날', line: function () { return '한 번 급하게 섰다. 나는 놀랐다.'; },
-      cut: function () { return { kind: 'brake', cap: '오는 길에 한 번 급하게 섰다.', proof: '1초에 시속 7.5km 넘게 줄어든 순간 1번' }; },
+      cut: function () { return { kind: 'brake', cap: '오는 길에 한 번 급하게 섰다.', proof: '1초에 시속 7.5km 이상 줄어든 순간 1번' }; },
       mid: function () { return { kind: 'end', mood: 'shock', cap: '나는 놀랐다. 주인도 놀랐을 거다.' }; },
       end: function () { return { kind: 'end', mood: 'sweat', fx: 'sweat', cap: '아무 일 없었다. 그러면 됐다.' }; }
     },
     accel: {
       title: '세게 밟은 날', line: function () { return '한 번 세게 밟았다. 나는 놀랐다.'; },
-      cut: function () { return { kind: 'accel', cap: '오는 길에 한 번 세게 밟았다.', proof: '1초에 시속 11km 넘게 늘어난 순간 1번' }; },
+      cut: function () { return { kind: 'accel', cap: '오는 길에 한 번 세게 밟았다.', proof: '1초에 시속 11km 이상 늘어난 순간 1번' }; },
       mid: function () { return { kind: 'end', mood: 'shock', cap: '갑자기였다. 나는 준비가 안 돼 있었다.' }; },
       end: function () { return { kind: 'end', mood: 'calm', cap: '급한 일이 있었나 보다. 나는 천천히 가는 것도 좋다.' }; }
     }

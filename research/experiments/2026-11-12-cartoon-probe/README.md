@@ -24,7 +24,7 @@
 | 안전벨트 | `Seat.getCurrentSeatBeltBuckledState` | 읽힘(`false`). 값이 따라 바뀌는지는 안 봄(콘솔에 항목 없음) | read |
 | 좌석 점유 | `Seat.getCurrentSeatOccupancy` | **못 씀.** 콘솔은 네 자리 모두 빈 자리인데 앱은 다섯 자리 모두 `true`. 콘솔에서 바꿔도 그대로 | change-and-read |
 | 시트 앞뒤 위치 | `Seat.getCurrentSeatForeAftPosition` | **못 씀.** 콘솔 40 → 앱 0 | change-and-read |
-| 공조 전원 | `HVAC.getHvacPowerState` | 실패. 좌석 영역으로는 지원하지 않는다고 나옴(`area ID 0x1 not supported`). 전체 영역으로는 안 해 봄 | read |
+| 공조 전원 | `HVAC.getHvacPowerState` | 실패. 좌석 영역으로는 지원하지 않는다고 나옴(`area ID 0x1 not supported`). 전체 영역으로는 안 해 봄(11-13 `dumpsys car_service`: 전체 좌석 영역 0x75로는 설정돼 있음, `../2026-11-13-cabin-signals`) | read |
 | 주행 모드 | `DrivingMode.getCurrentDrivingModeState` | 실패. 차량 속성 목록에 없음 | read |
 | 실내 조명 읽기 | `Light.getAmbientLightBrightness/Color` | **됨.** 밝기 100, 색 58879(= `#00e5ff`, 콘솔과 같음). 스위치는 앱 `OFF`·콘솔 `On`으로 서로 다름 | read |
 | 실내 조명 제어 | `Light.setAmbientLightBrightness/Color/Switch` | **됨.** 밝기 30·색 `#2979ff`로 바꾸자 콘솔이 `{"color": "#2979ff", "brightness_pct": 30}`이 됨. 되돌리자 원래 값 | 2026-11-12 실행 출력(아래) |
@@ -52,7 +52,7 @@
 
 ## 판정
 
-- 1차 사건으로 쓸 수 있는 새 신호: 창문, 공조 온도·풍량, 시트 열선, 문·트렁크 열림, 주행 가능 거리. 지금 앱이 이미 읽는 기어·와이퍼·문 잠금·주행거리·조향·방향지시등·속도와 합친다.
+- 1차 사건으로 쓸 수 있는 새 신호: 창문, 공조 온도·풍량, 시트 열선, 문·트렁크 열림, 주행 가능 거리. 그때 앱이 읽던 기어·와이퍼·문 잠금·주행거리·조향·방향지시등·속도와 합친다. (뒤에 만화에 쓰지 않는 문 잠금·방향지시등은 수집에서 뺐고, 문·트렁크·주행 가능 거리도 기록하지 않는다.)
 - 뒷자리 손님(좌석 점유)과 낯선 운전자(시트 위치)는 에뮬레이터에서 값이 따라오지 않아 시연할 수 없다. 사건 사전에는 "실차 확인 필요"로 남기고 1차 구현에서 뺀다.
 - 실내 조명 연출, 차의 목소리, 받아쓰기는 1차 범위에 넣을 수 있다.
 

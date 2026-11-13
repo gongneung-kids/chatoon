@@ -9,6 +9,7 @@
   python3 tools/vc.py status                 콘솔·앱 상태 확인
   python3 tools/vc.py keepalive              시연 내내 콘솔을 켜 둔다(Ctrl+C로 종료)
   python3 tools/vc.py scenario all           주행 시나리오를 실행하고 앱 기록을 자동 검증
+                                             (release 빌드는 앱 파일을 읽을 수 없어 주행만 하고, 결과는 앱 화면에서 본다)
   python3 tools/vc.py scenario commute|cabin|rain|parking|harsh
   python3 tools/vc.py demo suggest           시연용 12주 기록 넣기(steady|watch|suggest|improve|commuter|clear)
   python3 tools/vc.py set gear Drive         값 하나 바꾸고 적용 확인(gear|wiper|odometer)
@@ -52,6 +53,23 @@ INTERFERENCE_PROBE_KPH = 5
 
 class ToolError(Exception):
     """사용자에게 그대로 보여 줄 실패."""
+
+
+class DriveOnly(Exception):
+    """release 빌드: 주행은 했지만 앱 기록 파일을 읽을 수 없어 자동 검증을 건너뛴다."""
+
+
+_debuggable: bool | None = None
+
+
+def app_debuggable() -> bool:
+    """설치된 차툰이 debug 빌드인가. release는 run-as로 앱 파일을 읽을 수 없다."""
+    global _debuggable
+    if _debuggable is None:
+        dump = adb("shell", "dumpsys", "package", PACKAGE, check=False)
+        flags = re.search(r"pkgFlags=\[([^\]]*)\]", dump)
+        _debuggable = bool(flags and "DEBUGGABLE" in flags.group(1))
+    return _debuggable
 
 
 # 가상 콘솔이 창문 네 곳을 받는 이름(/vehicle/body). 상태에서는 front_left·front_right·rear_left·rear_right로 읽힌다.
@@ -377,11 +395,15 @@ class Trip:
 
 def run_trip(console: Console, during: Callable[[Console], None]) -> Trip:
     """P → D → (during) → P 한 번을 실행하고, 앱이 새로 남긴 주행 기록을 돌려준다."""
-    before = len(trip_lines())
+    release = not app_debuggable()
+    before = 0 if release else len(trip_lines())
     console.gear("Drive")
     time.sleep(2)
     during(console)
     console.gear("Park")
+    if release:
+        time.sleep(4)  # 앱이 주차를 받아 한 화를 그릴 시간
+        raise DriveOnly()
     deadline = time.monotonic() + 10
     trip: Trip | None = None
     while time.monotonic() < deadline:
@@ -432,9 +454,11 @@ def scenario_cabin(console: Console) -> list[str]:
         time.sleep(4)
         c.windows(0)
         time.sleep(1)
-    trip = run_trip(console, drive)
-    console.cabin_temp(22)
-    console.seat_heat(0)
+    try:
+        trip = run_trip(console, drive)
+    finally:
+        console.cabin_temp(22)
+        console.seat_heat(0)
     return check([
         ("출발 때 22도 → 주차 전 26도", (trip.temp_start, trip.temp) == (22, 26), (trip.temp_start, trip.temp)),
         ("출발 때 열선 꺼짐 → 2단", (trip.heat_start, trip.heat) == (0, 2), (trip.heat_start, trip.heat)),
@@ -443,8 +467,10 @@ def scenario_cabin(console: Console) -> list[str]:
 
 
 def scenario_rain(console: Console) -> list[str]:
-    trip = run_trip(console, lambda c: (time.sleep(2), c.wiper("Low"), time.sleep(2)))
-    console.wiper("Off")
+    try:
+        trip = run_trip(console, lambda c: (time.sleep(2), c.wiper("Low"), time.sleep(2)))
+    finally:
+        console.wiper("Off")
     # 와이퍼는 주행 중간에 켰으므로 대략 절반
     return check([("빗길 약 50%", trip.rain is not None and 0.2 < trip.rain < 0.8, trip.rain)])
 
@@ -502,6 +528,9 @@ def check(items: list[tuple[str, bool, object]]) -> list[str]:
 # ---------------------------------------------------------------- 명령
 
 def require_consent() -> None:
+    if not app_debuggable():  # release: 동의 파일 대신 동의해야만 뜨는 기록 서비스로 확인
+        require_recording_service()
+        return
     consent = app_file("consent.txt")
     if consent is None:
         raise ToolError("앱에서 기록 동의가 되어 있지 않습니다. 앱을 열고 '동의하고 시작하기'를 눌러 주세요.")
@@ -514,6 +543,11 @@ def cmd_status(_: argparse.Namespace) -> int:
         print(f"가상 콘솔: 켜짐 · 기어 {s['gear']['actual']['value'] if s['gear'].get('actual') else '모름'}"
               f" · 와이퍼 {s['body']['wipers']['front']['mode']}"
               f" · 주행거리 {s['odometer']['traveled_distance_km']}km")
+    if not app_debuggable():
+        dump = adb("shell", "dumpsys", "activity", "services", PACKAGE, check=False)
+        on = "RecordingService" in dump and "isForeground=true" in dump
+        print(f"앱: release 빌드(기록 파일은 읽지 않음) · 기록 서비스 {'켜짐(동의함)' if on else '꺼짐(앱을 열고 동의해 주세요)'}")
+        return 0
     consent = app_file("consent.txt")
     print(f"앱 동의: {'버전 ' + consent.split()[0] if consent else '안 됨'} · 주행 기록 {len(trip_lines())}건")
     return 0
@@ -544,6 +578,9 @@ def cmd_scenario(args: argparse.Namespace) -> int:
             console.reset()
             try:
                 failures = SCENARIOS[name](console)
+            except DriveOnly:
+                failures = []
+                print("    주행함. release 빌드는 앱 기록 파일을 읽을 수 없어 자동 검증은 건너뜀 → 앱의 '이번 화'에서 확인해 주세요")
             except ToolError as e:
                 failures = [str(e)]
                 print(f"    실패  {e}")
@@ -556,6 +593,8 @@ def cmd_scenario(args: argparse.Namespace) -> int:
 
 def cmd_demo(args: argparse.Namespace) -> int:
     ensure_device()
+    if not app_debuggable():
+        raise ToolError("시연 기록 넣기는 debug 빌드에서만 됩니다(release에는 시연용 수신기가 없음).")
     require_consent()
     adb("logcat", "-c")
     adb("shell", "am", "broadcast", "--user", DRIVER_USER, "-a", f"{PACKAGE}.DEMO_DATA",

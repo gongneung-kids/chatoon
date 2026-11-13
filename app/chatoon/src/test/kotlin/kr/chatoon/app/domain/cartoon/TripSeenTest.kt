@@ -74,7 +74,7 @@ class TripSeenTest {
     }
 
     @Test
-    fun `창문을 1분 넘게 내리고 달렸으면 창문 사건, 공조 값은 그대로 넘긴다`() {
+    fun `창문을 1분 이상 내리고 달렸으면 창문 사건, 공조 값은 그대로 넘긴다`() {
         val base = trip(at(2026, 11, 10, 14))
         assertTrue(convert.of(base.copy(windowsOpenMillis = 90_000), emptyList()).windowsAllDown)
         assertFalse(convert.of(base.copy(windowsOpenMillis = 20_000), emptyList()).windowsAllDown)
@@ -102,7 +102,7 @@ class TripSeenTest {
     }
 
     @Test
-    fun `달리다 공조 온도를 2도 넘게 바꾸면 올린 날·내린 날이 되고, 설정 온도 사건과 겹치지 않는다`() {
+    fun `달리다 공조 온도를 2도 이상 바꾸면 올린 날·내린 날이 되고, 설정 온도 사건과 겹치지 않는다`() {
         val base = trip(at(2026, 11, 10, 8))
         val up = convert.of(base.copy(setTempStartC = 22, setTempC = 26), emptyList())
         assertEquals(22, up.tempFrom)
@@ -132,5 +132,29 @@ class TripSeenTest {
         assertTrue(ventEpisode.cuts.any { (it.panel as? Panel.Seat)?.vent == true && it.proof == "운전석 시트 통풍 단계 · 출발 때 꺼짐" })
         // 지난 7일 안 켜다가 켠 통풍(출발 때부터)
         assertEquals("통풍시트를 켠 날", CartoonWriter.write(convert.of(today.copy(seatVentStart = 1, seatVentLevel = 1), emptyList())).title)
+    }
+
+    @Test
+    fun `첫 주행과 어제 비슷한 주행이 없는 날은 어제·평소와 견주지 않는다`() {
+        val now = trip(at(2026, 11, 10, 18), shifts = 3)
+        fun texts(e: Episode) = (listOf(e.title, e.line) + e.cuts.flatMap { listOfNotNull(it.caption, it.proof) }).joinToString(" / ")
+
+        // 기록을 시작하고 첫 주행: 어제·평소가 없다.
+        val first = CartoonWriter.write(convert.of(now, listOf(now)))
+        assertEquals("처음 함께 달린 날", first.title)
+        assertTrue(texts(first), first.cuts.any { it.caption == "기록을 시작하고 첫 주행이었다." && it.proof == "주행 기록 1번" })
+        assertFalse(texts(first), texts(first).contains("어제") || texts(first).contains("평소"))
+
+        // 어제 아침에만 달렸다(저녁과 시간대가 다름): 어제와 견주지 않고 운전한 시간만, 주차는 지난 7일 기록이 있으니 평소와 견준다.
+        val noYesterday = CartoonWriter.write(convert.of(now, listOf(trip(at(2026, 11, 9, 8), shifts = 3))))
+        assertEquals("별일 없는 날", noYesterday.title)
+        assertTrue(texts(noYesterday), noYesterday.cuts.any { it.caption == "30분 동안 달렸다. 별다른 일은 없었다." && it.proof == "출발·도착 시각" })
+        assertFalse(texts(noYesterday), texts(noYesterday).contains("어제"))
+        assertTrue(texts(noYesterday), noYesterday.cuts.any { it.caption.startsWith("주차는 세 번. 평소와 비슷했다.") })
+
+        // 어제 같은 시간대에 비슷한 시간만큼 달렸다: 「어제와 비슷한」이 맞는 말이 된다.
+        val yesterday = CartoonWriter.write(convert.of(now, listOf(trip(at(2026, 11, 9, 18, 40), shifts = 3))))
+        assertTrue(texts(yesterday), yesterday.cuts.any { it.caption == "어제와 비슷한 시간에 나가, 비슷한 시간만큼 달렸다." })
+
     }
 }

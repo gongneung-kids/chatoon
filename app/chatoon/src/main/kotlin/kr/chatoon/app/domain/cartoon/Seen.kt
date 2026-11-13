@@ -49,12 +49,20 @@ data class Seen(
     /** 평소와 달리 켠 운전석 통풍시트 단계(달리다 켰거나 지난 7일 동안 켠 적이 없을 때만). 그렇지 않으면 0. */
     val seatVent: Int = 0,
     val seatVentMidDrive: Boolean = false,
-    /** 달리는 중에 공조 설정 온도를 2도 넘게 바꿨으면 출발 때 온도(바꾼 뒤 온도는 [setTemp]). 아니면 null. */
+    /** 달리는 중에 공조 설정 온도를 2도 이상 바꿨으면 출발 때 온도(바꾼 뒤 온도는 [setTemp]). 아니면 null. */
     val tempFrom: Int? = null,
     /** 같은 상황에서 어떤 표현을 쓸지 고르는 번호. 주행마다 정해져(출발 시각) 같은 화는 늘 같은 문장이다. 0이면 기본 문장. */
     val variant: Int = 0,
     /** 평소와 다른 일이 없는 날에 쓰는, 지난 기록에서 센 사실([Routine]). 기본은 없음(예전과 같은 「별일 없는 날」). */
     val routine: Routine = Routine.NONE,
+    /** 기록을 시작하고 첫 주행인가(지난 기록이 하나도 없음). 그러면 어제·평소와 견주는 말을 쓰지 않는다. */
+    val firstTrip: Boolean = false,
+    /** 어제 비슷한 시각(앞뒤 한 시간)에 나가 비슷한 시간(0.7~1.3배)만큼 달린 주행이 있었는가. 있어야 「어제와 비슷한」이라고 쓴다. */
+    val likeYesterday: Boolean = true,
+    /** 지난 7일 안에 주차 기록이 있는가. 있어야 「평소와 비슷했다」라고 쓴다. */
+    val parkUsualKnown: Boolean = true,
+    /** 이 주행의 운전 시간(분). 모르면 null. */
+    val driveMinutes: Int? = null,
 ) {
     init {
         require(hour in 0..23) { "hour must be 0..23" }

@@ -63,7 +63,7 @@ class CartoonWriterTest {
     fun `놀란 순간이 여러 번이면 그 수대로 쓴다`() {
         val episode = CartoonWriter.write(quiet.copy(jolt = Jolt.BRAKE, joltCount = 2))
         assertEquals("오는 길에 두 번 급하게 섰다.", episode.cuts[1].caption)
-        assertEquals("1초에 시속 7.5km 넘게 줄어든 순간 2번", episode.cuts[1].proof)
+        assertEquals("1초에 시속 7.5km 이상 줄어든 순간 2번", episode.cuts[1].proof)
     }
 
     @Test

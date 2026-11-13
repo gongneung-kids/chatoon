@@ -61,6 +61,10 @@ class TripSeen(
             tempFrom = tempFrom(trip),
             variant = Math.floorMod(trip.startedAtMillis / 1000, 9973L).toInt(),
             routine = Routine.of(trip, before, zone),
+            firstTrip = before.isEmpty(),
+            likeYesterday = likeYesterday(trip, before),
+            parkUsualKnown = before.any { trip.startedAtMillis - it.startedAtMillis <= WEEK_MILLIS },
+            driveMinutes = (trip.durationMillis / 60_000).toInt().coerceAtLeast(1),
         )
     }
 
@@ -72,6 +76,20 @@ class TripSeen(
             millis < light.sunsetMillis - DUSK_MILLIS -> TimeOfDay.DAY
             millis < light.sunsetMillis + DUSK_MILLIS -> TimeOfDay.DUSK
             else -> TimeOfDay.NIGHT
+        }
+    }
+
+    /** 어제 비슷한 시각(앞뒤 한 시간)에 나가 비슷한 시간(0.7~1.3배)만큼 달린 주행이 있었는가. */
+    private fun likeYesterday(trip: Trip, before: List<Trip>): Boolean {
+        val start = Instant.ofEpochMilli(trip.startedAtMillis).atZone(zone)
+        val yesterday = start.toLocalDate().minusDays(1)
+        val length = trip.durationMillis.toDouble()
+        if (length <= 0) return false
+        return before.any {
+            val s = Instant.ofEpochMilli(it.startedAtMillis).atZone(zone)
+            s.toLocalDate() == yesterday &&
+                abs(s.hour * 60 + s.minute - (start.hour * 60 + start.minute)) <= 60 &&
+                it.durationMillis / length in 0.7..1.3
         }
     }
 
@@ -96,7 +114,7 @@ class TripSeen(
 
     private fun midDrive(level: Int?, start: Int?): Boolean = start == 0 && (level ?: 0) > 0
 
-    /** 달리는 중에 설정 온도를 [TEMP_CHANGE]도 넘게 바꿨으면 출발 때 온도. */
+    /** 달리는 중에 설정 온도를 [TEMP_CHANGE]도 이상 바꿨으면 출발 때 온도. */
     private fun tempFrom(trip: Trip): Int? {
         val from = trip.setTempStartC ?: return null
         val to = trip.setTempC ?: return null
@@ -117,9 +135,9 @@ class TripSeen(
     companion object {
         /** 주행 시간 중 와이퍼가 이 비율 이상 켜져 있었으면 비 온 날로 본다. */
         const val RAIN_SHARE = 0.2
-        /** 달리는 동안 창문을 전부 이만큼 넘게 내리고 있었으면 "창문을 내리고 달린 날"이다(톨게이트에서 잠깐 연 것은 세지 않는다). */
+        /** 달리는 동안 창문을 전부 이만큼 이상 내리고 있었으면 "창문을 내리고 달린 날"이다(톨게이트에서 잠깐 연 것은 세지 않는다). */
         const val WINDOWS_OPEN_MILLIS = 60_000L
-        /** 달리다 설정 온도를 이만큼(도) 넘게 바꿔야 "온도를 올린/내린 날"이다(0.5도씩 만지작거린 것은 세지 않는다). */
+        /** 달리다 설정 온도를 이만큼(도) 이상 바꿔야 "온도를 올린/내린 날"이다(0.5도씩 만지작거린 것은 세지 않는다). */
         const val TEMP_CHANGE = 2
         const val DUSK_MILLIS = 40 * 60 * 1000L
         private const val DAY = 24 * 60 * 60 * 1000L

@@ -51,14 +51,14 @@ object CartoonWriter {
             return episode(
                 seen,
                 title = situation.title ?: top?.title(seen) ?: "어디 다녀온 날",
-                line = situation.told.pick(seen) + " " + (top?.line(seen) ?: "오늘도 평소대로였다."),
-                now = top?.cut(seen) ?: QUIET,
+                line = situation.told.pick(seen) + " " + (top?.line(seen) ?: if (seen.likeYesterday && !seen.firstTrip) "오늘도 평소대로였다." else "별다른 일은 없었다."),
+                now = top?.cut(seen) ?: quietCut(seen),
                 ask = ASK_WHERE,
                 said = seen.why,
                 cuts = listOf(
                     stage,
                     Cut(Panel.Front(situation.mood, fx = situation.fx), situation.told.pick(seen), answerProof(seen.why), say = SITUATION_SAY[situation.key]),
-                    top?.cut(seen) ?: QUIET,
+                    top?.cut(seen) ?: quietCut(seen),
                     Cut(Panel.End(situation.mood), situation.open.pick(seen) + (if (tie.isEmpty()) "" else " $tie") + " " + situation.close.pick(seen), say = SITUATION_END_SAY[situation.key]),
                 ),
             )
@@ -70,18 +70,23 @@ object CartoonWriter {
         if (found.isEmpty()) {
             return episode(
                 seen,
-                title = "별일 없는 날",
-                line = "오늘도 평소대로. 별일 없었다.",
-                now = QUIET,
+                title = if (seen.firstTrip) "처음 함께 달린 날" else "별일 없는 날",
+                line = when {
+                    seen.firstTrip -> "기록을 시작하고 첫 주행이었다. 별일 없었다."
+                    seen.likeYesterday -> "오늘도 평소대로. 별일 없었다."
+                    else -> "별다른 일 없이 달렸다."
+                },
+                now = quietCut(seen),
                 cuts = listOf(
                     stage,
-                    QUIET,
+                    quietCut(seen),
                     Cut(
                         Panel.Park(seen.parkShifts.coerceAtLeast(1), seen.parkedInReverse),
-                        (if (seen.parkShifts <= 1) "주차는 한 번에 들어갔다. 평소와 비슷했다." else "주차는 ${count(seen.parkShifts)} 번. 평소와 비슷했다.") + parkDirection(seen),
+                        (if (seen.parkShifts <= 1) "주차는 한 번에 들어갔다." else "주차는 ${count(seen.parkShifts)} 번.") +
+                            (if (seen.parkUsualKnown) " 평소와 비슷했다." else "") + parkDirection(seen),
                         parkProof(seen),
                     ),
-                    Cut(Panel.End(Mood.HAPPY), QUIET_ENDINGS.pick(seen)),
+                    Cut(Panel.End(Mood.HAPPY), (if (seen.firstTrip) FIRST_ENDINGS else QUIET_ENDINGS).pick(seen)),
                 ),
             )
         }
@@ -275,6 +280,30 @@ object CartoonWriter {
 
     private val QUIET = Cut(Panel.Front(Mood.CALM), "어제와 비슷한 시간에 나가, 비슷한 시간만큼 달렸다.", "출발 시각과 주행 시간이 평소 범위")
 
+    /** 기록을 시작하고 첫 주행. 견줄 어제·평소가 없으니 그 사실만 쓴다. */
+    private val FIRST = Cut(Panel.Front(Mood.PROUD, fx = Fx.NOTE), "기록을 시작하고 첫 주행이었다.", "주행 기록 1번", say = "첫 화!")
+    private val FIRST_ENDINGS = listOf("오늘부터 내가 본 것을 그려 둔다. 잘 부탁한다.", "첫 화다. 다음 주행도 내가 그린다.")
+
+    /**
+     * 평소와 다른 일이 없을 때의 둘째 컷. 지난 기록으로 확인되는 만큼만 말한다:
+     * 첫 주행이면 그 사실, 어제 비슷한 주행이 있었으면 「어제와 비슷한」, 아니면 운전한 시간만.
+     */
+    private fun quietCut(s: Seen): Cut = when {
+        s.firstTrip -> FIRST
+        s.likeYesterday -> QUIET
+        else -> Cut(
+            Panel.Front(Mood.CALM),
+            (s.driveMinutes?.let { "${minutesText(it)} 동안 달렸다. " } ?: "") + "별다른 일은 없었다.",
+            s.driveMinutes?.let { "출발·도착 시각" },
+        )
+    }
+
+    private fun minutesText(m: Int): String = when {
+        m < 60 -> "${m}분"
+        m % 60 == 0 -> "${m / 60}시간"
+        else -> "${m / 60}시간 ${m % 60}분"
+    }
+
     private fun episode(
         seen: Seen,
         title: String,
@@ -440,8 +469,8 @@ object CartoonWriter {
             GUESTS -> Cut(Panel.Side(Mood.HAPPY, guests = s.guests, fx = Fx.NOTE), "오늘은 뒷자리에 ${count(s.guests)} 명이 탔다.", "좌석 점유 · 안전벨트")
             WIPER_FAST -> Cut(Panel.Wiper, "와이퍼가 가장 빠르게 움직였다.", "와이퍼 빠르기 단계")
             LATE -> Cut(Panel.Front(Mood.SLEEPY, fx = Fx.ZZZ), "평소라면 주차장에서 자고 있을 시간이다.", "출발 시각 · 지난 8주 같은 시간대 주행 0번")
-            BRAKE -> Cut(Panel.Brake, "오는 길에 ${count(s.joltCount)} 번 급하게 섰다.", "1초에 시속 7.5km 넘게 줄어든 순간 ${s.joltCount}번")
-            ACCEL -> Cut(Panel.Accel, "오는 길에 가속 페달을 ${count(s.joltCount)} 번 세게 밟았다.", "1초에 시속 11km 넘게 늘어난 순간 ${s.joltCount}번")
+            BRAKE -> Cut(Panel.Brake, "오는 길에 ${count(s.joltCount)} 번 급하게 섰다.", "1초에 시속 7.5km 이상 줄어든 순간 ${s.joltCount}번")
+            ACCEL -> Cut(Panel.Accel, "오는 길에 가속 페달을 ${count(s.joltCount)} 번 세게 밟았다.", "1초에 시속 11km 이상 늘어난 순간 ${s.joltCount}번")
         }
 
         /** 그 일만으로 한 화를 채울 때 셋째 컷. */
