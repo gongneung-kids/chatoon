@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 알림용 단색 아이콘: 말풍선 안의 차(앱 아이콘과 같은 모양을 단순하게). 차는 말풍선을 뚫은 모양 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M6,2.5H18A4,4 0,0 1,22 6.5V14A4,4 0,0 1,18 18H9.5L5,22L5.6,18H6A4,4 0,0 1,2 14V6.5A4,4 0,0 1,6 2.5Z M9.6,9.3L10.6,6.6H13.4L14.4,9.3H16.4A1.1,1.1 0,0 1,17.5 10.4V12.6A0.9,0.9 0,0 1,16.6 13.5H16.3V14.6A0.6,0.6 0,0 1,15.7 15.2H14.7A0.6,0.6 0,0 1,14.1 14.6V13.5H9.9V14.6A0.6,0.6 0,0 1,9.3 15.2H8.3A0.6,0.6 0,0 1,7.7 14.6V13.5H7.4A0.9,0.9 0,0 1,6.5 12.6V10.4A1.1,1.1 0,0 1,7.6 9.3Z M8,11.4a0.8,0.8 0,1 0,1.6 0a0.8,0.8 0,1 0,-1.6 0Z M14.4,11.4a0.8,0.8 0,1 0,1.6 0a0.8,0.8 0,1 0,-1.6 0Z" />
+</vector>

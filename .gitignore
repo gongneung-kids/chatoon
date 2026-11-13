@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+
+# 비밀값 / 로컬 설정
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 서명 키
+*.jks
+*.keystore
+
+# APK는 제출용 apk/ 폴더만 올림
+*.apk
+*.aab
+!apk/*.apk
+
+# 임시 파일
+*.log
+~$*
+
+# 시연 영상은 tools/demo_video.py로 다시 만들 수 있어 저장소에 올리지 않는다(제출은 링크로)
+contests/hmg-vehicle-app/submissions/*.mp4
+
+# 실험 폴더의 영상·녹화 원본은 커밋하지 않음(용량). 결과 요약·캡처 png는 커밋
+research/experiments/**/*.mp4
+research/experiments/**/parts/

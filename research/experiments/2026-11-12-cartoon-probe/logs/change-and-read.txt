@@ -1,0 +1,54 @@
+콘솔 좌석 점유: {"driver": false, "passenger": false, "rear_left": false, "rear_right": false}
+콘솔 조명: {"mode": "On", "color": "#00e5ff", "brightness_pct": 100}
+
+## 바꾸기 전
+   ambient bright [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = 100
+   ambient color [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = 58879
+   ambient switch [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = ON
+   door position [REAR] = 0
+   door position [ROW_1_LEFT] = 0
+   hvac fan [ROW_1_LEFT, ROW_1_RIGHT] = 3
+   hvac temp [ROW_1_LEFT] = 22.0
+   hvac temp [ROW_1_RIGHT] = 22.0
+   range remaining = 0.0
+   seat belt driver = false
+   seat belt row2 left = false
+   seat foreaft [ROW_1_LEFT] = 0
+   seat heat driver = 0
+   seat occupancy [ROW_1_LEFT] = true
+   seat occupancy [ROW_1_RIGHT] = true
+   seat occupancy [ROW_2_CENTER] = true
+   seat occupancy [ROW_2_LEFT] = true
+   seat occupancy [ROW_2_RIGHT] = true
+   window [ROW_1_LEFT] = 0
+   window [ROW_1_RIGHT] = 0
+   window [ROW_2_LEFT] = 0
+   window [ROW_2_RIGHT] = 0
+
+콘솔에 넣은 값: 창문 {'front_left': 100, 'front_right': 50, 'rear_left': 0, 'rear_right': 0} | 온도 17.0 | 풍량 8 | 운전석 앞뒤 40 | 점유 {'driver': False, 'passenger': False, 'rear_left': False, 'rear_right': False} | 트렁크 True
+
+## 바꾼 뒤
+   ambient bright [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = 100
+   ambient color [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = 58879
+   ambient switch [ROW_1_LEFT, ROW_1_RIGHT, ROW_2_LEFT, ROW_2_CENTER, ROW_2_RIGHT] = ON
+   door position [REAR] = 100
+   door position [ROW_1_LEFT] = 1
+   hvac fan [ROW_1_LEFT, ROW_1_RIGHT] = 8
+   hvac temp [ROW_1_LEFT] = 17.0
+   hvac temp [ROW_1_RIGHT] = 22.0
+   range remaining = 31000.0
+   seat belt driver = false
+   seat belt row2 left = false
+   seat foreaft [ROW_1_LEFT] = 0
+   seat heat driver = 3
+   seat occupancy [ROW_1_LEFT] = true
+   seat occupancy [ROW_1_RIGHT] = true
+   seat occupancy [ROW_2_CENTER] = true
+   seat occupancy [ROW_2_LEFT] = true
+   seat occupancy [ROW_2_RIGHT] = true
+   window [ROW_1_LEFT] = 10
+   window [ROW_1_RIGHT] = 5
+   window [ROW_2_LEFT] = 0
+   window [ROW_2_RIGHT] = 0
+
+(콘솔 값을 원래대로 되돌림. 좌석 점유는 뒤 두 자리와 조수석을 비운 채로 둠)

@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- 카툰 상세안과 시안. 이 파일 안의 스크립트가 만화 규칙의 기준이고, 앱의 CartoonWriter와 같아야 한다(tools/cartoon_golden.mjs로 대조용 값을 만든다). -->
+<style>body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<p style="margin:0;padding:10px 16px;background:#fff4c2;color:#3a2f00;font:14px/1.5 system-ui,sans-serif">2026-11-12 설계 단계에 만든 상세안과 웹 시안입니다. 앱의 만화 규칙은 이 시안의 스크립트와 글자까지 대조합니다(<code>tools/cartoon_golden.mjs</code>). 지금 앱이 하는 일과 상태는 기획서가 기준입니다.</p>
+<title>카툰 상세 기획</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* 레이아웃: 만화 잡지의 연재 지면(굵은 먹선 컷, 별색 노랑 하나)이 맨 위에 있고, 그 아래로 편집부 기획 노트가 한 단으로 이어진다 */
+:root{
+  --bg:#EDEEE9; --surface:#F7F7F3; --fg:#16171B; --muted:#5A5C62; --hair:#C8C9C1;
+  --paper:#FFFFFF; --ink:#16171B; --tone:#DADBD3; --tone2:#9FA19A; --glass:#EEF2F2;
+  --night:#1E2233; --night-ink:#E9E8DF; --spot:#FFD11A; --on-spot:#16171B;
+  --font-display:"Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-comic:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121316; --surface:#1A1C20; --fg:#ECEBE3; --muted:#A3A49E; --hair:#3A3C42;
+    --paper:#24262C; --ink:#EFEEE6; --tone:#3A3D46; --tone2:#6B6E78; --glass:#2F333B;
+    --night:#08090C; --night-ink:#E9E8DF; --spot:#FFD11A; --on-spot:#16171B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121316; --surface:#1A1C20; --fg:#ECEBE3; --muted:#A3A49E; --hair:#3A3C42;
+  --paper:#24262C; --ink:#EFEEE6; --tone:#3A3D46; --tone2:#6B6E78; --glass:#2F333B;
+  --night:#08090C; --night-ink:#E9E8DF; --spot:#FFD11A; --on-spot:#16171B;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{max-width:1080px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:44px 88px}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid var(--spot);outline-offset:2px}
+
+/* 머리 */
+.eyebrow{font-size:.8rem;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 0 10px}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(3rem,10vw,5.4rem);line-height:1;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.25em}
+.h1-sub{font-family:var(--font-body);font-weight:500;font-size:1rem;letter-spacing:.08em;color:var(--muted)}
+.lede{font-size:1.15rem;line-height:1.7;max-width:40em;margin:18px 0 0;text-wrap:pretty}
+
+/* 연재 지면 */
+.strip-area{margin-top:36px}
+.strip-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;border-top:4px solid var(--fg);padding-top:12px;margin-bottom:14px}
+.ep-title{font-family:var(--font-display);font-weight:400;font-size:1.5rem;line-height:1.25;margin:0}
+.ep-by{font-size:.82rem;color:var(--muted);margin:0}
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.cut{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cut-frame{position:relative;border:3px solid var(--ink);background:var(--paper);aspect-ratio:4/3;overflow:hidden;max-width:100%}
+.cut-frame svg{display:block;width:100%;height:100%}
+.cut-no{position:absolute;left:0;top:0;background:var(--ink);color:var(--paper);font-weight:600;font-size:.72rem;line-height:1;padding:4px 6px;z-index:1}
+.cap{font-family:var(--font-comic);font-weight:400;font-size:1.1rem;line-height:1.42;margin:0}
+.proof{font-size:.76rem;line-height:1.45;color:var(--muted);margin:0}
+.spoken{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:18px 0 0;padding:12px 14px;background:var(--surface);border:1px solid var(--hair)}
+.spoken-label{font-size:.78rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.spoken-line{font-family:var(--font-comic);font-weight:400;font-size:1.2rem;line-height:1.4}
+
+/* 조작판 */
+.console{margin-top:18px;padding:18px;background:var(--surface);border:1px solid var(--hair)}
+.console h3{font-size:1rem;font-weight:600;margin:0}
+.console-lead{font-size:.86rem;color:var(--muted);margin:2px 0 14px;max-width:62ch}
+.ctl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px 22px}
+.ctl{border:0;padding:0;margin:0;min-width:0}
+.ctl legend,.ctl-label{display:flex;justify-content:space-between;gap:8px;width:100%;padding:0;font-size:.84rem;font-weight:600;margin-bottom:6px}
+.ctl output{font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.seg{display:flex;flex-wrap:wrap;gap:6px;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{border:2px solid var(--fg);padding:5px 12px;font-size:.86rem;font-weight:500;line-height:1.5;cursor:pointer;background:var(--bg);user-select:none}
+.seg input:checked+label{background:var(--fg);color:var(--bg)}
+.seg input:focus-visible+label{outline:3px solid var(--spot);outline-offset:2px}
+.ctl input[type=range]{width:100%;accent-color:var(--fg);margin:2px 0 0}
+.hint{font-size:.76rem;color:var(--muted);margin:2px 0 0}
+.fineprint{font-size:.8rem;color:var(--muted);margin:14px 0 0;max-width:70ch}
+[hidden]{display:none!important}
+#ask2-body{margin-top:14px}
+.ask{margin:0 0 18px;padding:0 0 18px;border-bottom:1px solid var(--hair)}
+.ask-q{display:block;font-family:var(--font-comic);font-weight:400;font-size:1.25rem;line-height:1.35;margin:0 0 8px}
+.ask-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ask input[type=text]{flex:1 1 220px;min-width:0;max-width:340px;font:inherit;font-size:1rem;padding:8px 10px;border:2px solid var(--fg);background:var(--bg);color:var(--fg);border-radius:0}
+.ask input[type=text]:focus-visible{outline:3px solid var(--spot);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips button{font:inherit;font-size:.86rem;font-weight:500;line-height:1.5;padding:4px 11px;border:1.5px solid var(--fg);background:var(--spot);color:var(--on-spot);cursor:pointer;border-radius:0}
+.chips button.plain{background:var(--bg);color:var(--fg)}
+
+/* 본문 */
+.sec{margin-top:76px}
+.sec>h2{font-family:var(--font-display);font-weight:400;font-size:1.7rem;line-height:1.25;margin:0 0 18px;padding-top:14px;border-top:4px solid var(--fg);text-wrap:balance}
+.sec h3{font-size:1.02rem;font-weight:600;margin:26px 0 8px}
+.sec p{max-width:68ch;margin:0 0 14px}
+.sec ul,.sec ol{max-width:68ch;margin:0 0 14px;padding-left:1.3em}
+.sec li{margin-bottom:6px}
+.note{font-size:.88rem;color:var(--muted)}
+.facts{margin:0;display:grid;gap:0;border-top:1px solid var(--fg)}
+.facts>div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid var(--hair)}
+.facts dt{font-weight:600}
+.facts dd{margin:0;max-width:62ch}
+
+.moments{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.moment{border:2px solid var(--fg);padding:16px;background:var(--surface);min-width:0}
+.moment h3{margin:12px 0 6px}
+.moment p{margin:0;font-size:.94rem}
+.gear{display:inline-flex;border:2px solid var(--fg);font-weight:600;font-size:.8rem;line-height:1}
+.gear span{padding:5px 8px;color:var(--muted)}
+.gear .on{background:var(--spot);color:var(--on-spot)}
+
+.screen{margin:22px 0 0;max-width:760px}
+.screen-in{display:grid;grid-template-columns:128px minmax(0,1fr);border:3px solid var(--fg);background:var(--bg)}
+.screen-nav{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-right:1px solid var(--hair);font-size:.84rem}
+.screen-nav span{padding:7px 14px;color:var(--muted)}
+.screen-nav .cur{background:var(--fg);color:var(--bg);font-weight:600}
+.screen-body{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;padding:16px;align-items:center}
+.screen-kicker{font-size:.78rem;font-weight:600;color:var(--muted);margin:0 0 6px}
+.screen-line{font-family:var(--font-comic);font-weight:400;font-size:1.25rem;line-height:1.38;margin:0 0 10px}
+.screen-note{font-size:.78rem;color:var(--muted);margin:0}
+.screen-ask{font-family:var(--font-comic);font-weight:400;font-size:1.2rem;line-height:1.3;margin:12px 0 6px;padding-top:10px;border-top:1px solid var(--hair)}
+.screen-answers{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem;font-weight:500}
+.screen-answers span{border:1.5px solid var(--fg);padding:2px 9px;line-height:1.6}
+.screen-answers .said{background:var(--spot);color:var(--on-spot);font-family:var(--font-comic);font-weight:400;font-size:1rem}
+.screen figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+
+.steps{list-style:none;padding:0;margin:0 0 18px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;max-width:none;counter-reset:step}
+.steps li{counter-increment:step;border-top:2px solid var(--fg);padding-top:10px;margin:0;font-size:.94rem;min-width:0}
+.steps li::before{content:counter(step);display:block;font-family:var(--font-display);font-size:1.5rem;line-height:1.1;margin-bottom:4px}
+.steps b{display:block;font-weight:600;margin-bottom:2px}
+
+.tbl-wrap{overflow-x:auto;border-top:2px solid var(--fg);margin:0 0 16px}
+.tbl{border-collapse:collapse;width:100%;min-width:660px;font-size:.92rem;line-height:1.6}
+.tbl th{text-align:left;font-weight:600;padding:10px 14px 10px 0;border-bottom:1px solid var(--fg);white-space:nowrap}
+.tbl td{padding:10px 14px 10px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+.tbl td:last-child,.tbl th:last-child{padding-right:0}
+.tbl .say{font-family:var(--font-comic);font-weight:400;font-size:1rem;line-height:1.45}
+.tbl .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;line-height:1.5;padding:1px 7px;border:1.5px solid var(--fg);white-space:nowrap}
+.tag.now{background:var(--fg);color:var(--bg)}
+.tag.calc{background:var(--tone);border-color:var(--tone)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.82rem;color:var(--muted);margin:0 0 12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+.cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.col{border-top:2px solid var(--fg);padding-top:10px;min-width:0}
+.col h3{margin:0 0 6px}
+.col ul{padding-left:1.1em;margin:0;font-size:.92rem}
+.formula{font-weight:600;padding:12px 14px;background:var(--surface);border:1px solid var(--hair);max-width:68ch;margin:0 0 14px}
+.days{list-style:none;padding:0;margin:0 0 16px;max-width:none;border-top:1px solid var(--fg)}
+.days li{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid var(--hair);margin:0}
+.days b{font-weight:600;font-variant-numeric:tabular-nums}
+.sources{font-size:.86rem;color:var(--muted)}
+.sources li{margin-bottom:4px;overflow-wrap:anywhere}
+
+/* 컷 그림 */
+.c-i,.c-ni,.c-ip,.c-it,.c-is,.c-ig{stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.c-i{fill:none;stroke:var(--ink)}
+.c-ni{fill:none;stroke:var(--night-ink)}
+.c-ip{fill:var(--paper);stroke:var(--ink)}
+.c-it{fill:var(--tone);stroke:var(--ink)}
+.c-is{fill:var(--spot);stroke:var(--ink)}
+.c-ig{fill:var(--glass);stroke:var(--ink)}
+.c-thin{stroke-width:2}
+.c-fi{fill:var(--ink)} .c-ft{fill:var(--tone)} .c-ft2{fill:var(--tone2)} .c-fs{fill:var(--spot)}
+.c-fn{fill:var(--night)} .c-fp{fill:var(--paper)} .c-fni{fill:var(--night-ink)}
+.c-spot{fill:none;stroke:var(--spot);stroke-width:6;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.c-tx{font-family:var(--font-comic);font-weight:400;fill:var(--ink)}
+.c-txn{font-family:var(--font-comic);font-weight:400;fill:var(--night-ink)}
+.c-txs{font-family:var(--font-body);font-weight:600;fill:var(--on-spot)}
+.c-txq{font-family:var(--font-comic);font-weight:400;fill:var(--on-spot)}
+
+@media (max-width:860px){
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .moments{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .cap{font-size:1rem}
+  .screen-in{grid-template-columns:1fr}
+  .screen-nav{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--hair);padding:0}
+  .screen-body{grid-template-columns:1fr}
+  .facts>div,.days li{grid-template-columns:1fr;gap:2px}
+  .cols{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">차량용 앱 개발 공모전 · 아이디어 상세안 · 2026년 11월 12일</p>
+  <h1>카툰 <span class="h1-sub">Car-toon</span></h1>
+  <p class="lede">차가 본 것에 주인의 한마디를 더해, 차의 눈으로 그린 4컷 만화를 매주 한 화씩 연재하는 Pleos 앱입니다. 카메라도 위치도 쓰지 않고 차량 신호와 주인의 말만으로 그립니다.</p>
+</header>
+
+<section class="strip-area" aria-labelledby="ep-title">
+  <div class="strip-head">
+    <h2 class="ep-title" id="ep-title">제12화</h2>
+    <p class="ep-by">글·그림 붕붕이(차) · 화요일의 기록</p>
+  </div>
+  <div class="strip" id="strip"></div>
+  <p class="spoken"><span class="spoken-label">세우는 순간 차가 하는 말</span><span class="spoken-line" id="line"></span></p>
+
+  <form class="console" id="console" aria-label="차가 본 것">
+    <div class="ask">
+      <label class="ask-q" for="why">차가 묻습니다. “어디 가시는 길이었나요?”</label>
+      <div class="ask-row">
+        <input type="text" id="why" name="why" maxlength="16" value="면접 보러" placeholder="예: 면접 보러" autocomplete="off">
+      </div>
+      <div class="chips" id="why-chips">
+        <button type="button" data-why="면접 보러">면접 보러</button>
+        <button type="button" data-why="엄마 병원">엄마 병원</button>
+        <button type="button" data-why="소개팅">소개팅</button>
+        <button type="button" data-why="코스트코">코스트코</button>
+        <button type="button" data-why="그냥 답답해서">그냥 답답해서</button>
+        <button type="button" data-why="회사 야근">회사 야근</button>
+        <button type="button" class="plain" data-why="">답 안 함</button>
+      </div>
+      <p class="hint">직접 써 보세요(16자까지). 앱에서는 말로 답하거나, 화면 키보드로 쓰거나, 자주 쓰는 답을 한 번 누릅니다. 답하지 않아도 만화는 나옵니다.</p>
+    </div>
+    <div class="ask" id="ask2">
+      <fieldset class="ctl">
+        <legend>오는 길에 차가 놀란 순간</legend>
+        <div class="seg">
+          <input type="radio" name="jolt" id="jolt-none" value="none" checked><label for="jolt-none">없음</label>
+          <input type="radio" name="jolt" id="jolt-brake" value="brake"><label for="jolt-brake">급하게 섬</label>
+          <input type="radio" name="jolt" id="jolt-accel" value="accel"><label for="jolt-accel">세게 밟음</label>
+        </div>
+      </fieldset>
+      <div id="ask2-body" hidden>
+        <label class="ask-q" for="why2" id="ask2-q">차가 묻습니다.</label>
+        <div class="ask-row">
+          <input type="text" id="why2" name="why2" maxlength="16" value="" placeholder="예: 한눈팔다가" autocomplete="off">
+        </div>
+        <div class="chips" id="why2-chips">
+          <button type="button" data-why="한눈팔다가 사고 날 뻔">한눈팔다가 사고 날 뻔</button>
+          <button type="button" data-why="앞차가 너무 느려서">앞차가 너무 느려서</button>
+          <button type="button" data-why="갑자기 끼어들어서">갑자기 끼어들어서</button>
+          <button type="button" data-why="고양이가 튀어나와서">고양이가 튀어나와서</button>
+          <button type="button" data-why="노란불이라서">노란불이라서</button>
+          <button type="button" class="plain" data-why="">답 안 함</button>
+        </div>
+        <p class="hint">급하게 섰거나 세게 밟은 순간이 있었던 날에만, 세운 뒤에 묻습니다. 점수를 깎지 않고 묻기만 합니다.</p>
+      </div>
+    </div>
+    <h3>차가 본 것을 바꿔 보세요</h3>
+    <p class="console-lead">값을 바꾸면 위 만화가 다시 그려집니다. 앱에서는 차량 신호가 이 자리를 채우고, 시연에서는 가상 콘솔로 같은 값을 바꿉니다.</p>
+    <div class="ctl-grid">
+      <fieldset class="ctl">
+        <legend>나간 시간</legend>
+        <div class="seg">
+          <input type="radio" name="time" id="time-day" value="day"><label for="time-day">낮</label>
+          <input type="radio" name="time" id="time-dusk" value="dusk" checked><label for="time-dusk">해 질 녘</label>
+          <input type="radio" name="time" id="time-night" value="night"><label for="time-night">한밤</label>
+        </div>
+      </fieldset>
+      <fieldset class="ctl">
+        <legend>와이퍼</legend>
+        <div class="seg">
+          <input type="radio" name="wiper" id="wiper-0" value="0"><label for="wiper-0">끔</label>
+          <input type="radio" name="wiper" id="wiper-1" value="1"><label for="wiper-1">보통</label>
+          <input type="radio" name="wiper" id="wiper-2" value="2" checked><label for="wiper-2">빠르게</label>
+        </div>
+      </fieldset>
+      <div class="ctl">
+        <label class="ctl-label" for="park">주차할 때 기어를 바꾼 횟수 <output id="park-out" for="park">3번</output></label>
+        <input type="range" id="park" name="park" min="1" max="7" step="1" value="3">
+        <p class="hint">지난주 평균 5번</p>
+      </div>
+      <fieldset class="ctl">
+        <legend>창문</legend>
+        <div class="seg">
+          <input type="radio" name="windows" id="windows-up" value="up" checked><label for="windows-up">닫음</label>
+          <input type="radio" name="windows" id="windows-down" value="down"><label for="windows-down">전부 내림</label>
+        </div>
+      </fieldset>
+      <div class="ctl">
+        <label class="ctl-label" for="temp">에어컨·히터 설정 온도 <output id="temp-out" for="temp">22도</output></label>
+        <input type="range" id="temp" name="temp" min="17" max="27" step="1" value="22">
+        <p class="hint">평소 22도</p>
+      </div>
+      <div class="ctl">
+        <label class="ctl-label" for="guests">뒷자리 손님 <output id="guests-out" for="guests">0명</output></label>
+        <input type="range" id="guests" name="guests" min="0" max="3" step="1" value="0">
+        <p class="hint">평소에는 혼자 탐</p>
+      </div>
+      <fieldset class="ctl">
+        <legend>운전석 위치</legend>
+        <div class="seg">
+          <input type="radio" name="stranger" id="stranger-no" value="no" checked><label for="stranger-no">그대로</label>
+          <input type="radio" name="stranger" id="stranger-yes" value="yes"><label for="stranger-yes">누가 바꿈</label>
+        </div>
+      </fieldset>
+    </div>
+    <p class="fineprint">이 그림은 미리 그려 둔 그림 파일이 아닙니다. 차의 표정, 배경, 소품 조각을 이 페이지의 코드가 그 자리에서 조립합니다. 앱도 같은 방식으로 그립니다. 그림체는 시안이고, 조립 방식이 되는지를 보려고 만든 것입니다.</p>
+  </form>
+</section>
+
+<section class="sec" id="glance">
+  <h2>한눈에</h2>
+  <dl class="facts">
+    <div><dt>무엇</dt><dd>차가 본 주인의 일주일을 4컷 만화로 매주 한 화씩 연재합니다. 주차할 때마다 그날의 한 컷이 먼저 나옵니다.</dd></div>
+    <div><dt>묻고 답하기</dt><dd>차는 무엇을 했는지 알고, 왜 했는지는 주인만 압니다. 차가 세운 뒤에 “어디 가시는 길이었나요?” 하고 물으면 주인이 말이나 키보드로 답하고, 그 답이 만화에 들어갑니다.</dd></div>
+    <div><dt>누구</dt><dd>Pleos Connect가 들어간 아반떼를 첫차로 산 20~30대부터 시작합니다.</dd></div>
+    <div><dt>왜 차</dt><dd>만화의 소재는 주차할 때 기어를 바꾼 횟수, 와이퍼, 창문, 에어컨 온도, 운전석 위치, 뒷자리 손님입니다. 차만 압니다.</dd></div>
+    <div><dt>새로운 점</dt><dd>주행 데이터를 점수나 그래프로 보여 주지 않고 이어지는 이야기로 돌려줍니다. 점수, 순위, 경고가 없습니다. 위치를 읽는 대신 주인에게 묻습니다.</dd></div>
+  </dl>
+</section>
+
+<section class="sec" id="who">
+  <h2>누구의 어떤 마음을 푸나</h2>
+  <p>타깃은 Pleos Connect가 들어간 아반떼를 첫차로 산 20~30대입니다. 이 세대가 만화를 요일마다 챙겨 보고, 첫차에 정을 붙이고, 재미있는 것은 친구에게 보낸다고 보고 세운 안입니다. 아직 가정이고, 아래 근거로 확인해야 합니다.</p>
+  <ul>
+    <li>차는 내 하루를 가장 가까이서 봅니다. 그런데 돌려주는 것은 주행거리와 연비입니다.</li>
+    <li>운전 점수는 한 번 보고 닫습니다. 운전이 서툰 사람에게는 낙제표입니다.</li>
+    <li>서툰 운전은 숨기기보다 웃어넘기고 싶은 일입니다. 뒷유리에 붙이는 초보운전 문구가 그렇습니다.</li>
+  </ul>
+  <p>카툰은 같은 사실을 차의 눈으로 본 이야기로 바꿉니다. 주차를 다섯 번 고쳐 넣은 날은 웃음이 되고, 회차가 쌓이면 다섯 번이 세 번이 되는 과정이 보입니다.</p>
+  <p class="note">확보할 근거: 20~30대의 만화 이용 빈도(한국콘텐츠진흥원 이용자 조사 원문), 아반떼 구매자의 연령 비중(현대차 공개 자료). 20·30대가 아반떼에서 빠지고 있다는 보도가 있어 현대차에도 절실한 세대로 보입니다. 기사 제목과 요약으로만 본 내용이라 원문과 1차 출처를 확인한 뒤에 씁니다.</p>
+</section>
+
+<section class="sec" id="moments">
+  <h2>차 안에서 일어나는 일</h2>
+  <div class="moments">
+    <div class="moment">
+      <div class="gear" role="img" aria-label="기어 D"><span>P</span><span>R</span><span>N</span><span class="on">D</span></div>
+      <h3>달리는 동안</h3>
+      <p>화면도 소리도 바뀌지 않습니다. 차는 신호를 모으기만 합니다. 주행 중에 시선을 뺏는 것이 없습니다.</p>
+    </div>
+    <div class="moment">
+      <div class="gear" role="img" aria-label="기어 P"><span class="on">P</span><span>R</span><span>N</span><span>D</span></div>
+      <h3>세우는 순간</h3>
+      <p>P단에 넣으면 방금 주행에서 고른 한 컷이 뜨고, 차가 한 문장으로 읽어 줍니다. 평소와 다른 주행이었다면 어디 가시는 길이었는지 묻습니다. 답하지 않으면 5초 뒤에 물러납니다.</p>
+    </div>
+    <div class="moment">
+      <div class="gear" role="img" aria-label="기어 P"><span class="on">P</span><span>R</span><span>N</span><span>D</span></div>
+      <h3>일주일에 한 번</h3>
+      <p>정한 요일에 그 주의 화가 완성됩니다. 볼 때 실내 조명이 장면 색으로 바뀝니다(정차 중, 켠 사람만). 컷에 대꾸하면 다음 화에 반영되고, QR로 폰에 옮겨 저장합니다.</p>
+    </div>
+  </div>
+  <figure class="screen">
+    <div class="screen-in">
+      <div class="screen-nav" aria-hidden="true"><span class="cur">방금</span><span>연재</span><span>모아 보기</span><span>설정</span></div>
+      <div class="screen-body">
+        <div class="cut-frame" id="now-cut"></div>
+        <div>
+          <p class="screen-kicker" id="now-kicker">방금 한 컷</p>
+          <p class="screen-line" id="now-line"></p>
+          <p class="screen-note">차가 소리로도 읽어 줍니다 · 누르면 근거 신호</p>
+          <p class="screen-ask" id="now-ask">어디 가시는 길이었나요?</p>
+          <div class="screen-answers" id="now-answers" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>P단에 넣는 순간의 차 화면 시안. 위 조작판과 이어져 있습니다.</figcaption>
+  </figure>
+  <p style="margin-top:18px">설치 첫날에는 차 이름을 지어 주면 1화 「처음 만난 날」이 그려집니다. 결과를 보려고 몇 주를 기다릴 필요가 없습니다.</p>
+</section>
+
+<section class="sec" id="ask">
+  <h2>차가 묻고, 주인이 답한다</h2>
+  <p>차는 무엇을 했는지 압니다. 한밤에 나갔고, 창문을 전부 내렸고, 주차를 일곱 번 고쳐 넣었습니다. 왜 그랬는지는 주인만 압니다. 둘이 합쳐져야 이야기가 됩니다.</p>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>차가 본 것(같은 기록)</th><th>주인의 한마디</th><th>차의 일기</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="3">한밤에 나감. 창문을 전부 내림.</td><td class="say">회사 야근</td><td class="say">오늘도 일하러 갔다. 창문은 전부 내리고 달렸다. 주인이 일하는 동안 나는 기다렸다. 그게 내 일이다.</td></tr>
+        <tr><td class="say">소개팅</td><td class="say">그래서 그랬구나. 창문은 전부 내리고 달렸다. 오늘은 나도 좀 깨끗해 보이고 싶었다.</td></tr>
+        <tr><td class="say">그냥 답답해서</td><td class="say">이유는 없다고 했다. 창문은 전부 내리고 달렸다. 나는 그런 날이 제일 좋다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>무엇을 묻나</h3>
+  <p>한 번 세울 때 질문은 하나만 합니다. 그날 가장 눈에 띈 일을 고릅니다.</p>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>차가 본 것</th><th>차의 질문</th><th>답이 쓰이는 곳</th></tr></thead>
+      <tbody>
+        <tr><td>평소와 다른 주행</td><td class="say">어디 가시는 길이었나요?</td><td>화 제목, 상황에 맞춘 차의 반응</td></tr>
+        <tr><td>급하게 선 순간</td><td class="say">아까 급하게 서셨죠. 괜찮으세요?</td><td>그 순간의 컷과 차의 걱정</td></tr>
+        <tr><td>세게 밟은 순간</td><td class="say">아까 세게 밟으셨죠. 급한 일 있었나요?</td><td>그 순간의 컷과 차의 한마디</td></tr>
+        <tr><td>운전석 위치가 바뀜</td><td class="say">오늘은 다른 분이 운전하셨나요?</td><td>그 주행을 따로 묶어 주인의 기록과 섞지 않음</td></tr>
+        <tr><td>주차가 평소보다 오래 걸림</td><td class="say">오늘 자리가 좁았나요?</td><td>주차 컷의 대사</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>꾸짖지 않고 묻는다</h3>
+  <p>운전 점수는 급하게 선 횟수를 세어 점수를 깎습니다. 카툰은 세운 뒤에 한 번 묻고, 주인이 스스로 말한 이유를 그림으로 남깁니다. 아찔했던 순간을 자기 말로 정리하게 하는 방식입니다.</p>
+  <div class="strip" id="strip2"></div>
+  <p class="note" style="margin-top:14px">위 화는 급하게 선 순간이 한 번 있었고, 주인이 “한눈팔다가 사고 날 뻔”이라고 답한 날입니다. 맨 위 시안에서 「오는 길에 차가 놀란 순간」을 고르면 답을 바꿔 볼 수 있습니다. 근거로 확보할 것: 아찔했던 순간을 스스로 적는 일이 운전에 주는 효과. 아직 찾아보지 않았습니다.</p>
+  <h3>언제 묻나</h3>
+  <ul>
+    <li>P단에 세운 뒤에만 묻습니다. 달리는 동안에는 묻지 않습니다.</li>
+    <li>평소와 다른 주행이었을 때만 묻습니다. 매일 같은 출근길은 한 번 이름을 붙이면 다시 묻지 않습니다.</li>
+    <li>일주일에 한두 번을 넘기지 않습니다. 답하지 않으면 5초 뒤에 물러나고, 만화는 차가 본 것만으로 그립니다.</li>
+  </ul>
+  <h3>어떻게 답하나</h3>
+  <ul>
+    <li>말로 답합니다. SpeechToText SDK로 받아쓰고, 차가 물은 직후 몇 초 동안만 듣습니다.</li>
+    <li>화면 키보드로 씁니다.</li>
+    <li>자주 쓰는 답(출근, 약속, 그냥)을 한 번 누릅니다.</li>
+  </ul>
+  <h3>답이 만화가 되는 방법</h3>
+  <ol>
+    <li>주인의 말은 고치지 않고 그대로 옮깁니다. 그림에서는 노란 말풍선입니다.</li>
+    <li>정해 둔 낱말 사전으로 상황을 가립니다. 면접·시험, 병원, 데이트, 데리러 가기, 가족, 일, 사러 가기, 운동, 먹으러, 놀러, 그냥의 11가지입니다.</li>
+    <li>상황에 따라 차의 반응과 표정이 달라지고, 그날 기록에서 가장 눈에 띄는 일을 엮어 마지막 컷을 만듭니다.</li>
+    <li>화 제목이 주인의 말이 됩니다. 「제12화 · 면접 보러」.</li>
+  </ol>
+  <h3>이 기능이 푸는 것</h3>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>없을 때의 약점</th><th>있으면</th></tr></thead>
+      <tbody>
+        <tr><td>사건 종류가 정해져 있어 몇 주 뒤 같은 컷이 반복됨</td><td>주인의 말은 매번 다릅니다. 같은 기록도 다른 화가 됩니다.</td></tr>
+        <tr><td>재미뿐이라는 평</td><td>면접, 합격, 첫 출근처럼 내 일이 순서대로 남는 일기가 됩니다.</td></tr>
+        <tr><td>어디에 갔는지 알려면 위치를 읽어야 함</td><td>위치를 읽지 않습니다. 주인이 말한 만큼만 압니다.</td></tr>
+        <tr><td>음성 SDK가 덧붙인 기능에 그침</td><td>SpeechToText가 만화를 만드는 재료가 됩니다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>지키는 것과 한계</h3>
+  <ul>
+    <li>주인의 말은 차 안에만 암호화해 둡니다. 공유하기 전에 그 컷을 빼거나 말을 가릴 수 있습니다.</li>
+    <li>병원 같은 말은 걱정하는 한마디로만 받습니다. 건강을 짐작하거나 판단하지 않습니다.</li>
+    <li>늘 듣고 있지 않습니다. 차가 물은 직후나 주인이 버튼을 누른 동안만 듣습니다.</li>
+    <li>사전에 없는 말은 뜻을 모른 채 그대로 옮기기만 합니다. 위 시안에 아무 말이나 넣어 보면 그 경우를 볼 수 있습니다.</li>
+    <li>생성형 AI를 쓰면 더 잘 받아 주겠지만 쓰지 않습니다. 공모전 기간에는 Pleos LLM SDK가 제공되지 않고, 차 밖 서버로 주인의 말을 보내지 않기로 했기 때문입니다. 차 안에서 도는 모델이 열리면 대사를 다듬는 데만 쓰고, 사실은 그대로 둡니다.</li>
+  </ul>
+</section>
+
+<section class="sec" id="how">
+  <h2>만화가 만들어지는 과정</h2>
+  <ol class="steps">
+    <li><b>듣는다</b>차량 신호를 읽어 주행마다 기록합니다.</li>
+    <li><b>사건으로 바꾼다</b>와이퍼를 빠르게 켬, 주차할 때 기어를 세 번 바꿈, 창문 네 곳을 다 내림 같은 사건으로 정리합니다.</li>
+    <li><b>고른다</b>평소와 다른 일, 처음 있는 일에 높은 점수를 줍니다.</li>
+    <li><b>묻는다</b>고른 주행이 평소와 달랐다면 세운 뒤에 왜 나갔는지 묻습니다. 답은 그대로 옮기고, 낱말 사전으로 상황을 가립니다.</li>
+    <li><b>그린다</b>사건마다 준비된 배경, 차의 표정, 소품, 대사 틀을 맞춰 넣습니다. 팀이 그린 벡터 조각을 코드로 조립합니다.</li>
+  </ol>
+  <h3>지키는 원칙</h3>
+  <ul>
+    <li>있었던 일만 그립니다. 사실을 그린 컷에는 근거 신호가 붙고, 차의 감상을 그린 컷에는 「차의 생각」이라고 적습니다. 차의 생각은 기분과 짐작만 쓰고, 일어난 일처럼 쓰지 않습니다.</li>
+    <li>차 안에서만 만듭니다. 서버와 생성형 AI를 쓰지 않고, 대사 틀은 사람이 씁니다.</li>
+    <li>차는 주인 편입니다. 꾸짖지 않고, 점수를 매기지 않고, 남과 비교하지 않습니다.</li>
+    <li>급하게 서거나 세게 밟은 순간은 차가 놀라고 걱정하는 장면으로만 그립니다. 멋지게 그리지 않고, 횟수를 겨루지 않고, 한 주에 한 컷을 넘기지 않습니다. 그런 순간이 없던 주에는 차가 가장 편한 얼굴로 나옵니다.</li>
+    <li>같은 종류의 사건은 연달아 쓰지 않습니다. 몇 주째 같은 일이면 반복 개그로 바꿉니다.</li>
+  </ul>
+</section>
+
+<section class="sec" id="events">
+  <h2>사건 사전</h2>
+  <p>만화의 소재가 되는 사건과, 그 사건을 알려 주는 신호입니다. 1차 제출에는 위쪽의 확인된 신호부터 씁니다.</p>
+  <p class="legend"><span><span class="tag now">지금 앱이 읽음</span> 코드가 이미 있음</span><span><span class="tag calc">지금 기록으로 계산</span> 새 신호 없이 가능</span><span><span class="tag">SDK에 있음 · 확인 필요</span> 에뮬레이터에서 읽히는지 아직 안 봄</span></p>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>사건</th><th>차가 읽는 신호</th><th>차의 말(예)</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td>비 오는 날</td><td>와이퍼 켜짐. 빠르기 단계는 추가 확인</td><td class="say">와이퍼가 가장 빠르게 움직였다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>주차를 몇 번 만에</td><td>주차 직전 2분 동안 기어를 바꾼 횟수</td><td class="say">주차는 세 번 만에 들어갔다. 지난주는 다섯 번.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>문을 안 잠그고 감</td><td>주차 중 문 잠금(시동이 켜져 있는 동안)</td><td class="say">문을 안 잠그고 갔다. 내가 지켰다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>깜빡이</td><td>조향각, 방향지시등, 속도(속도 권한을 켠 사람만)</td><td class="say">오늘은 돌 때마다 깜빡이를 켰다. 열두 번 전부.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>급하게 선 순간</td><td>1초에 시속 7.5km 넘게 줄어든 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 급하게 섰다. 나는 심장이 없는데도 멎는 줄 알았다.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>세게 밟은 순간</td><td>1초에 시속 11km 넘게 늘어난 순간(속도 권한을 켠 사람만). 세운 뒤에 이유를 물음</td><td class="say">오는 길에 한 번 세게 밟았다. 나는 천천히 가는 것도 좋은데.</td><td><span class="tag now">지금 앱이 읽음</span></td></tr>
+        <tr><td>해 진 뒤, 한밤 외출</td><td>출발 시각과 기기 안 일몰 계산</td><td class="say">평소라면 주차장에서 자고 있을 시간이다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
+        <tr><td>쉬지 않고 두 시간</td><td>기어 P→D→P 사이의 시간. 휴게소 찾기로 이어짐</td><td class="say">두 시간을 한 번도 안 쉬었다. 나는 괜찮은데 주인이 걱정이다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
+        <tr><td>처음 있는 일</td><td>지금까지 기록에 없던 조합</td><td class="say">처음으로 밤에 비를 맞았다. 둘 다 긴장했다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
+        <tr><td>또 그 길</td><td>같은 시각, 같은 주행 시간이 3주 이상</td><td class="say">월요일 8시 10분. 화요일 8시 10분. 수요일은 8시 12분. 뛰었겠지.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
+        <tr><td>오래 안 탄 주</td><td>주행 기록이 비어 있는 날</td><td class="say">닷새째 주차장이다. 벽에 금이 몇 개인지 다 셌다.</td><td><span class="tag calc">지금 기록으로 계산</span></td></tr>
+        <tr><td>창문을 전부 내림</td><td>창문 위치(창문 제어는 10월 30일 에뮬레이터에서 확인)</td><td class="say">주인은 창문을 전부 내리고 달렸다.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>에어컨, 히터</td><td>공조 설정 온도, 풍량</td><td class="say">에어컨은 17도, 바람은 최대.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>겨울 아침</td><td>핸들 열선, 시트 열선, 성에 제거</td><td class="say">겨울이 왔다. 주인은 핸들부터 데웠다.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>뒷자리 손님</td><td>좌석 점유, 안전벨트</td><td class="say">오늘은 뒷자리에 두 명이 탔다.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>낯선 운전자</td><td>운전석 앞뒤 위치, 등받이 각도</td><td class="say">운전석이 한 뼘 뒤로 밀렸다. 누구세요?</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>고속도로</td><td>크루즈 상태, 내비 제한속도 이벤트</td><td class="say">크루즈를 켜고 한참 달렸다. 나는 이 길이 좋다.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+        <tr><td>기름이 바닥</td><td>주행 가능 거리</td><td class="say">남은 거리 30km까지 버텼다. 간이 크다.</td><td><span class="tag">SDK에 있음 · 확인 필요</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">그리지 않는 것: 제한속도를 넘긴 시간, 어디에 갔는지, 누가 탔는지(사람 수까지만), 차 안의 소리와 모습. 지금 앱은 급하게 서거나 세게 밟은 횟수만 남깁니다. 이유를 물으려면 그 순간의 시각도 함께 남겨야 하고, 속도 값은 지금처럼 남기지 않습니다.</p>
+</section>
+
+<section class="sec" id="diff">
+  <h2>이미 있는 것과 무엇이 다른가</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>이미 있는 것</th><th>하는 일</th><th>카툰과 다른 점</th></tr></thead>
+      <tbody>
+        <tr><td>그룹 드라이빙 인사이트의 안전 운전 점수</td><td>급가속·급감속 등을 점수로 만들어 휴대폰 앱에서 보여 줌</td><td>점수와 순위가 없음. 차 화면에서, 주차 직후에</td></tr>
+        <tr><td>공식 예시 「안전운전 점수 앱」</td><td>차량 상태 데이터로 주행 습관을 점수화</td><td>같은 데이터를 이야기로 돌려줌</td></tr>
+        <tr><td>공식 예시 「음성 메모 앱」</td><td>SpeechToText로 음성을 받아 메모로 남김</td><td>받아쓴 말이 메모로 끝나지 않고 그날 주행 기록과 엮여 만화가 됨</td></tr>
+        <tr><td>이전 공모전 우수작 「차마고치」</td><td>주유·충전·기어 상태로 키우는 게임</td><td>키우고 먹이는 구조가 없음. 주인이 주인공인 이야기</td></tr>
+        <tr><td>이전 공모전 우수작 「아그들아, 여행가자!」</td><td>차량 카메라로 여행 영상 기록</td><td>카메라를 쓰지 않음. 여행이 아닌 매일</td></tr>
+        <tr><td>이전 공모전 대상 「창밖동화」</td><td>경로와 지역에 맞춘 AI 동화와 퀴즈</td><td>지어낸 이야기가 아니라 실제로 있었던 일만</td></tr>
+        <tr><td>Gleo AI</td><td>말로 차량 기능을 실행하고 묻는 말에 답함. 대화 이력은 차 안에 저장</td><td>차가 먼저 주행 이유를 묻고 그 답을 기록으로 남기는 기능은 찾지 못함</td></tr>
+        <tr><td>현대차 브랜드 웹툰</td><td>작가와 협업해 만든 홍보용 만화</td><td>내 주행으로 그려지는 만화가 아님</td></tr>
+        <tr><td>르노 ZOE의 2017년 홍보</td><td>주행 데이터로 소설을 한 편 쓴 일회성 행사</td><td>매주 이어지는 앱. 주인공이 차 주인</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">찾아본 범위(2026년 11월 12일): Pleos Connect 사용설명서 수집본 68쪽에서 일기, 만화, 주행 기록, 운행 리포트에 해당하는 낱말을 찾았고 한 건도 없었습니다. 한국어와 영어 웹 검색 여섯 번으로 현대·기아 커넥티드 서비스, 앱마켓, Gleo AI, 브랜드 홍보물을 봤고, 주행 데이터를 만화로 돌려주거나 주행 이유를 물어 기록하는 기능은 찾지 못했습니다. Gleo AI와 브랜드 웹툰 행은 기사와 검색 요약으로 본 내용입니다.</p>
+  <p class="note">확인하지 못한 것: 앱마켓 18종 전체 이름, 기아와 제네시스 앱의 세부 메뉴, 특허, 그룹 안에서 개발 중인 것, 「카툰」이라는 이름을 쓰는 앱. 그룹은 이전 공모전 우수작 16개의 서비스화를 2026년 4분기부터 검토한다고 밝혔습니다.</p>
+</section>
+
+<section class="sec" id="criteria">
+  <h2>심사 기준에 대한 답</h2>
+  <p>왼쪽은 공모전 누리집의 1차 서류심사 평가 문장입니다.</p>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>평가 문장</th><th>카툰의 답</th></tr></thead>
+      <tbody>
+        <tr><td><b>차량특화성</b><br>모바일 대비 차량 환경만의 독자적인 가치와 우위를 제공하는가</td><td>만화의 소재가 전부 차만 아는 신호입니다. 폰이 아는 것은 어디에 갔는지까지입니다.</td></tr>
+        <tr><td><b>차량특화성</b><br>주행·정차 맥락 및 차량 기능과 유기적으로 결합되었는가</td><td>달리는 동안은 모으기만 하고, P단에 넣는 순간 한 컷이 나오고 차가 말하고 묻습니다. 연재를 볼 때는 실내 조명이 장면 색으로 바뀝니다.</td></tr>
+        <tr><td><b>창의성</b><br>기존에 없던 독창적이고 혁신적인 아이디어인가</td><td>주행 데이터를 매주 이어지는 만화로 돌려주는 차량 앱은 찾지 못했습니다. 공식 예시 두 가지(차량 데이터로 운전 습관 보기, 음성 받아쓰기)가 따로 하던 일을 하나의 이야기로 엮습니다.</td></tr>
+        <tr><td><b>창의성</b><br>Pain Points &amp; Needs가 명확히 정의되고 해결 방식이 명확한가</td><td>차가 주는 기록은 숫자뿐이라 한 번 보고 닫습니다. 차가 본 사실에 주인의 한마디를 더해 이야기로 바꿉니다. 실수는 웃음이 되고, 회차가 쌓이면 늘어 가는 모습과 내 일이 순서대로 남습니다. 급하게 선 순간도 점수로 깎지 않고 이유를 묻습니다.</td></tr>
+        <tr><td><b>기술 활용성</b><br>SDK·API를 앱의 핵심 기능과 사용 경험에 적절히 활용했는가</td><td>Vehicle SDK(읽기와 조명 제어), NaviHelper, TextToSpeech, SpeechToText를 씁니다. 공지된 다섯 SDK 중 넷입니다. 차의 신호가 그림이 되고, 차가 말로 묻고, 주인의 말이 대사가 됩니다.</td></tr>
+        <tr><td><b>사업성</b><br>타깃 고객, 사용자 확보, 지속적인 이용·확대 가능성</td><td>타깃은 아반떼를 첫차로 산 20~30대입니다. 주차할 때마다 한 컷, 주마다 한 화라 다시 열 이유가 일정에 들어 있습니다. 공유되는 컷이 다음 사용자를 데려옵니다.</td></tr>
+        <tr><td><b>가산점</b><br>시연 영상, GitHub 저장소</td><td>지금 앱의 기록기와 저장, 시연 도구를 그대로 써서 동작하는 앱과 영상을 냅니다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec" id="sdk">
+  <h2>쓰는 SDK</h2>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>SDK</th><th>어디에 쓰나</th><th>지금 상태</th></tr></thead>
+      <tbody>
+        <tr><td>Vehicle SDK 읽기</td><td>와이퍼, 문 잠금, 주행거리, 조향각, 방향지시등</td><td>지금 앱이 씀</td></tr>
+        <tr><td>Vehicle SDK 읽기(추가)</td><td>창문, 공조 온도·풍량, 시트 위치·열선, 좌석 점유</td><td>SDK에 있음. 에뮬레이터에서 읽히는지 확인 필요</td></tr>
+        <tr><td>Vehicle SDK 제어</td><td>연재를 볼 때 실내 조명의 색과 밝기(정차 중, 켠 사람만)</td><td>SDK에 있음. 확인 필요. 실제 출시에는 제어 권한 승인이 필요</td></tr>
+        <tr><td>NaviHelper</td><td>제한속도 이벤트(고속도로 장면), 휴게소 찾기, 내비 열기</td><td>지금 앱이 씀</td></tr>
+        <tr><td>TextToSpeech</td><td>방금 한 컷을 차가 읽어 주고, 어디 가시는 길이었는지 물음(기기 내 모드, 앱 등록 불필요)</td><td>공개 저장소에서 3.3.1이 받아짐. 소리가 나는지 확인 필요</td></tr>
+        <tr><td>SpeechToText</td><td>주인의 답을 받아씀(차가 물은 직후에만 들음, 기기 내 모드)</td><td>공개 저장소에서 3.3.1이 받아짐. 에뮬레이터 마이크로 되는지 확인 필요. 안 되면 1차는 키보드와 한 번 누르기로</td></tr>
+        <tr><td>Android Automotive</td><td>기어, 정차 판단</td><td>지금 앱이 씀</td></tr>
+        <tr><td>쓰지 않음</td><td>위치(FusedLocation), 카메라, 늘 켜 둔 마이크. Gleo는 참가팀이 승인을 신청할 수 없어 향후 계획으로 둠</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec" id="biz">
+  <h2>사업성</h2>
+  <h3>독자 수를 세는 방법</h3>
+  <p class="formula">주간 독자 = 국내 Pleos Connect 탑재 차량 × 설치·동의율 × 그 주에 새 화를 연 비율</p>
+  <ul>
+    <li>탑재 차량은 지금 기획서의 하한을 그대로 씁니다. 그랜저와 아반떼의 2026년 10월 판매가 매달 같고 전부 탑재된다고 가정하면 2027년 말 약 22만 4천 대, 2030년 말 약 68만 2천 대입니다.</li>
+    <li>설치·동의율과 열람 비율은 실적이 없습니다. 설치 10%, 주간 열람 50%로 잡으면 주간 독자는 2027년 말 약 1만 1천 명, 2030년 말 약 3만 4천 명입니다. 두 비율은 근거 없는 가정이라 기획서에도 가정으로 적습니다.</li>
+  </ul>
+  <h3>다시 열게 하는 장치</h3>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>주기</th><th>장치</th></tr></thead>
+      <tbody>
+        <tr><td class="num">주차할 때마다</td><td>방금 한 컷과 차의 한마디</td></tr>
+        <tr><td class="num">매주</td><td>정한 요일에 올라오는 새 화</td></tr>
+        <tr><td class="num">화에서 화로</td><td>대꾸가 다음 화에 반영됨, 반복 개그, 처음 있는 일</td></tr>
+        <tr><td class="num">해마다</td><td>회차 모아 보기, 연말 결산 화, 1년 뒤의 시즌 1 완결</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>잴 지표는 세 가지입니다. 그 주에 새 화를 연 비율, 4주 뒤에도 여는 비율, QR로 공유한 비율입니다.</p>
+  <h3>돈</h3>
+  <p>처음에는 무료입니다. Pleos 인앱 결제용 Payment SDK가 준비 중이기 때문입니다. 그 뒤로는 그림체 묶음과 작가 협업, 1년 치를 묶은 실물 단행본, 브랜드 협업 순으로 봅니다. 금액과 제휴처는 정해진 것이 없습니다.</p>
+  <h3>현대차그룹이 얻는 것</h3>
+  <ul>
+    <li>공유되는 컷마다 차 이름과 Pleos Connect가 붙어 나갑니다.</li>
+    <li>20~30대가 차에 정을 붙일 이유가 하나 생깁니다.</li>
+    <li>앱마켓에 내비와 오디오 밖의 사례가 생깁니다.</li>
+    <li>2027년 2월 전시에서 관람객이 가상 콘솔을 만지면 그 자리에서 만화가 됩니다.</li>
+  </ul>
+  <h3>넓힐 것</h3>
+  <p>가족이 함께 타는 차는 운전석 위치로 운전자를 나눠 따로 연재합니다. 그랜저와 투싼으로 넓히고, 차를 팔 때는 「이 차의 이야기」로 다음 주인에게 넘깁니다.</p>
+</section>
+
+<section class="sec" id="demo">
+  <h2>2차 발표 시연 3분</h2>
+  <p>심사위원이 고른 신호가 그 자리에서 만화가 되는 것이 핵심 장면입니다. 미리 넣어 둔 기록의 결과 화면을 보여 주는 시연과 다릅니다.</p>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr><th>시각</th><th>가상 콘솔에서 하는 일</th><th>차 화면에서 일어나는 일</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0:00</td><td>없음</td><td>지난 화들이 쌓인 연재 화면. 차 이름은 붕붕이</td></tr>
+        <tr><td class="num">0:20</td><td>와이퍼를 빠르게, 기어 D, 주행거리 증가</td><td>아무 변화 없음. 달리는 동안은 띄우지 않는다는 것을 보여 줌</td></tr>
+        <tr><td class="num">0:50</td><td>기어 R, D, R, 그리고 P</td><td>방금 한 컷이 뜨고 차가 말함. 주차 세 번 만에</td></tr>
+        <tr><td class="num">1:10</td><td>없음</td><td>차가 묻고, 심사위원이 직접 답함. 말이나 키보드로</td></tr>
+        <tr><td class="num">1:30</td><td>심사위원이 고른 신호(창문, 에어컨 온도)를 바꾸고 다시 P</td><td>그 신호로 그린 다른 컷</td></tr>
+        <tr><td class="num">1:55</td><td>연재일로 넘김</td><td>심사위원의 말이 제목과 대사로 들어간 4컷. 실내 조명 값이 장면 색으로 바뀌는 것을 콘솔에서 확인</td></tr>
+        <tr><td class="num">2:25</td><td>없음</td><td>컷을 누르면 근거 신호와 시각</td></tr>
+        <tr><td class="num">2:45</td><td>없음</td><td>QR을 폰으로 읽어 같은 4컷을 저장</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec" id="risk">
+  <h2>위험과 아직 모르는 것</h2>
+  <h3>위험</h3>
+  <ul>
+    <li>그림과 대사의 품질이 전부입니다. 어설프면 유치해 보입니다. 사건을 8종으로 줄이고 컷마다 손으로 다듬어야 합니다.</li>
+    <li>재미뿐이라는 반론이 나옵니다. 20~30대 근거를 확보하지 못하면 사업성이 약합니다.</li>
+    <li>몇 주 지나면 같은 컷이 반복될 수 있습니다. 출퇴근만 하는 가상 운전자로 반복률을 재서 숫자로 답해야 합니다.</li>
+    <li>차가 지켜본다는 설정이 싫은 사람이 있습니다. 무엇을 읽는지 첫 화면에 밝히고, 컷을 지울 수 있게 하고, 차 안에만 둡니다.</li>
+    <li>급하게 선 순간을 그리면 위험한 운전을 재미로 만든다는 지적을 받을 수 있습니다. 차가 놀라고 걱정하는 장면으로만 그리고 횟수를 겨루지 않는다는 규칙을 기획서에 분명히 적어야 합니다.</li>
+    <li>차가 물어도 답하기 귀찮을 수 있습니다. 그래서 일주일에 한두 번만 묻고, 답이 없어도 만화가 나오게 합니다. 실제로 얼마나 답하는지는 써 봐야 압니다.</li>
+    <li>주인의 말을 낱말 사전으로만 가리기 때문에 엉뚱하게 받을 수 있습니다. 사전에 없으면 뜻을 넘겨짚지 않고 그대로 옮기기만 합니다.</li>
+  </ul>
+  <h3>아직 모르는 것</h3>
+  <ul>
+    <li>추가 신호(창문, 공조, 시트, 좌석 점유)가 일반 앱 권한으로 에뮬레이터에서 읽히는지.</li>
+    <li>차의 목소리(TextToSpeech), 받아쓰기(SpeechToText), 실내 조명 제어가 에뮬레이터에서 실제로 되는지.</li>
+    <li>추가 신호가 안 될 때, 이미 읽는 신호만으로 화가 성립하는지. 위 시안에서는 시간, 비, 주차만으로도 한 화가 나옵니다.</li>
+    <li>2차 발표 심사 기준과 세부 배점. 공개되지 않았습니다.</li>
+  </ul>
+</section>
+
+<section class="sec" id="sources">
+  <h2>출처</h2>
+  <ul class="sources">
+    <li>평가 문장: <a href="https://appdevchallenge.auto-hmg.io/guide/judging-awards">공모전 심사·시상</a></li>
+    <li>공식 예시와 SDK 목록: <a href="https://appdevchallenge.auto-hmg.io/guide/development">공모전 개발 환경</a></li>
+    <li>SDK 사용 범위와 Gleo 승인: <a href="https://appdevchallenge.auto-hmg.io/notice/c0a1a000-2026-4923-8000-000000000008">공지, 개발 범위 및 기술 문의</a></li>
+    <li>저장소 제출 규칙: <a href="https://appdevchallenge.auto-hmg.io/notice/c0a1a000-2026-4923-8000-000000000007">공지, 비공개 저장소 제출 방법</a></li>
+    <li>이전 공모전 우수작과 선정 이유: <a href="https://www.hyundaimotorgroup.com/ko/story/hyundai-motor-company-pleos-connect-app-idea-contest">현대자동차그룹 저널</a></li>
+    <li>아반떼와 20·30대(기사, 원문 확인 필요): <a href="https://zdnet.co.kr/view/?no=20260805143444">지디넷코리아</a>, <a href="https://biz.newdaily.co.kr/site/data/html/2026/08/04/2026080400100.html">뉴데일리</a></li>
+    <li>르노 ZOE(기사): <a href="https://www.hackster.io/news/renaults-zoe-writes-jack-kerouac-fan-fiction-340c4fe953d8">Hackster</a>, <a href="https://cleantechnica.com/2017/04/22/renault-zoe-writes-fanfiction-road/">CleanTechnica</a></li>
+    <li>그룹 커넥티드 서비스와 홍보물: <a href="https://www.hyundai.com/kr/ko/digital-customer-support/app/myhyundai">마이현대 안내</a>, <a href="https://www.hyundai.com/kr/ko/brand/brandstory/campaigns/webtoon">현대차 브랜드 웹툰</a></li>
+    <li>Gleo AI와 앱마켓(기사): <a href="https://www.mt.co.kr/article/2026102019575795544">머니투데이</a>, <a href="https://www.venturesquare.net/en/1111201/">벤처스퀘어</a></li>
+    <li>탑재 차량 수, 지금 앱의 신호와 기록: 팀 저장소의 기획서와 앱 코드</li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var NUM = ['영', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟'];
+  var USUAL = { park: 5 };
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  /* 주인의 한마디를 상황으로 가르는 낱말 사전. 위에서부터 먼저 맞는 것을 쓴다 */
+  var CTX = [
+    { k: 'interview', words: ['면접', '시험', '발표', '오디션', '수능'], open: '떨렸겠다.', close: '잘 됐을 거다. 나는 안다.', mood: 'proud' },
+    { k: 'hospital', words: ['병원', '약국', '치과', '검진', '진료', '문병'], open: '걱정이 많았겠다.', close: '아프지 않았으면 좋겠다.', mood: 'calm' },
+    { k: 'date', words: ['데이트', '소개팅', '여자친구', '남자친구', '여친', '남친', '애인'], open: '그래서 그랬구나.', close: '오늘은 나도 좀 깨끗해 보이고 싶었다.', mood: 'happy' },
+    { k: 'pickup', words: ['픽업', '마중', '데리러', '태우러', '데려다'], open: '누군가를 데리러 갔다.', close: '돌아올 때는 혼자가 아니었겠다. 그런 길이 좋다.', mood: 'happy' },
+    { k: 'family', words: ['엄마', '아빠', '부모님', '본가', '할머니', '할아버지', '가족', '어머니', '아버지', '동생'], open: '가족 일이었다.', close: '이런 날은 나도 더 조심해서 달리고 싶다.', mood: 'calm' },
+    { k: 'work', words: ['출근', '퇴근', '회사', '야근', '회의', '출장', '미팅', '알바', '근무'], open: '오늘도 일하러 갔다.', close: '주인이 일하는 동안 나는 기다렸다. 그게 내 일이다.', mood: 'proud' },
+    { k: 'shopping', words: ['마트', '장보', '장 보', '쇼핑', '코스트코', '이마트', '백화점'], open: '뭔가를 사러 갔다.', close: '뭘 샀는지는 못 봤다. 트렁크는 내 등 뒤에 있다.', mood: 'calm' },
+    { k: 'workout', words: ['운동', '헬스', '수영', '골프', '축구', '등산', '필라테스', '요가', '러닝', '테니스'], open: '운동하러 갔다.', close: '땀을 많이 흘렸겠다. 창문 좀 열어 줬으면.', mood: 'sulk' },
+    { k: 'food', words: ['밥', '점심', '저녁', '맛집', '카페', '커피', '치킨', '회식'], open: '먹으러 갔다.', close: '맛있었겠다. 부럽다. 나는 못 먹는다.', mood: 'sulk' },
+    { k: 'trip', words: ['여행', '바다', '캠핑', '놀러', '휴가', '드라이브', '나들이'], open: '놀러 간 날이다.', close: '나는 이런 날을 기다린다.', mood: 'happy' },
+    { k: 'just', words: ['그냥', '답답', '바람', '심심'], open: '이유는 없다고 했다.', close: '나는 그런 날이 제일 좋다.', mood: 'happy' }
+  ];
+  var CTX_UNKNOWN = { k: 'unknown', open: '주인이 그렇게 말했다.', close: '무슨 뜻인지는 모르지만 적어 둔다. 나는 차니까.', mood: 'calm' };
+
+  function classify(why) {
+    for (var i = 0; i < CTX.length; i++) {
+      for (var j = 0; j < CTX[i].words.length; j++) if (why.indexOf(CTX[i].words[j]) !== -1) return CTX[i];
+    }
+    return CTX_UNKNOWN;
+  }
+
+  /* 말풍선에 넣으려고 한 줄 8자까지로 나눈다 */
+  function splitWhy(s) {
+    if (s.length <= 8) return [s];
+    var mid = Math.ceil(s.length / 2), best = -1, gap = 99;
+    for (var i = 1; i < s.length - 1; i++) {
+      if (s.charAt(i) === ' ' && Math.abs(i - mid) < gap) { gap = Math.abs(i - mid); best = i; }
+    }
+    if (best > 0 && best <= 8 && s.length - best - 1 <= 8) return [s.slice(0, best), s.slice(best + 1)];
+    return [s.slice(0, mid), s.slice(mid)];
+  }
+
+  /* ---------- 그림 조각: 문자열을 돌려준다 ---------- */
+
+  function sky(time, wet, bare) {
+    var s = '';
+    if (time === 'night') {
+      s += '<rect width="320" height="240" class="c-fn"/>';
+      if (!wet && !bare) {
+        s += '<circle cx="266" cy="44" r="17" class="c-fs"/><circle cx="274" cy="38" r="15" class="c-fn"/>';
+        s += '<circle cx="52" cy="38" r="2" class="c-fni"/><circle cx="98" cy="22" r="1.6" class="c-fni"/><circle cx="206" cy="26" r="2" class="c-fni"/><circle cx="28" cy="80" r="1.6" class="c-fni"/>';
+      }
+    } else if (time === 'dusk') {
+      s += '<rect width="320" height="206" class="c-ft"/>';
+      if (!wet && !bare) s += '<path d="M228 206a34 34 0 0 1 68 0z" class="c-fs"/>';
+    } else if (!bare) {
+      if (wet) {
+        s += '<path d="M24 46q4-14 18-10q10-12 24 0q13-1 12 10z" class="c-it c-thin"/><path d="M226 40q4-12 16-9q9-10 21 0q11-1 10 9z" class="c-it c-thin"/>';
+      } else {
+        s += '<circle cx="268" cy="42" r="15" class="c-is"/>';
+        s += '<path d="M30 50q4-12 16-9q8-10 19 0q11-1 10 9z" class="c-ip c-thin"/>';
+      }
+    }
+    return s;
+  }
+
+  function rain(level, night) {
+    if (!level) return '';
+    var cls = (night ? 'c-ni' : 'c-i') + ' c-thin';
+    var gapX = level === 2 ? 30 : 46, gapY = level === 2 ? 36 : 48, row = 0, s = '';
+    for (var y = 12; y < 196; y += gapY) {
+      for (var x = (row % 2 ? 12 : 30); x < 336; x += gapX) s += '<path d="M' + x + ' ' + y + 'l-6 15" class="' + cls + '"/>';
+      row++;
+    }
+    return s;
+  }
+
+  function ground(night, wet) {
+    var ink = night ? 'c-ni' : 'c-i';
+    var s = '<path d="M8 206H312" class="' + ink + '"/>';
+    if (wet) s += '<path d="M26 220h18M252 224h22M118 228h14" class="' + ink + ' c-thin"/>';
+    return s;
+  }
+
+  function eyes(mood) {
+    var L = 104, R = 216, Y = 136;
+    function pupil(dx, dy, r) {
+      r = r || 6.5;
+      return '<circle cx="' + (L + dx) + '" cy="' + (Y + dy) + '" r="' + r + '" class="c-fi"/><circle cx="' + (R + dx) + '" cy="' + (Y + dy) + '" r="' + r + '" class="c-fi"/>';
+    }
+    function arc(x, up) {
+      return up ? '<path d="M' + (x - 9) + ' ' + (Y + 3) + 'Q' + x + ' ' + (Y - 10) + ' ' + (x + 9) + ' ' + (Y + 3) + '" class="c-i"/>'
+                : '<path d="M' + (x - 9) + ' ' + (Y - 2) + 'Q' + x + ' ' + (Y + 9) + ' ' + (x + 9) + ' ' + (Y - 2) + '" class="c-i"/>';
+    }
+    var lid = '<path d="M' + (L - 18) + ' ' + Y + 'A18 18 0 0 1 ' + (L + 18) + ' ' + Y + 'Z" class="c-it"/><path d="M' + (R - 18) + ' ' + Y + 'A18 18 0 0 1 ' + (R + 18) + ' ' + Y + 'Z" class="c-it"/>';
+    switch (mood) {
+      case 'happy': return arc(L, true) + arc(R, true);
+      case 'sleepy': return arc(L, false) + arc(R, false);
+      case 'proud': return pupil(0, 6) + lid;
+      case 'sulk': return pupil(-6, 6) + lid;
+      case 'wary': return pupil(7, 6, 6) + lid;
+      case 'shock': return pupil(0, 0, 4);
+      default: return pupil(0, 1);
+    }
+  }
+
+  function mouth(mood) {
+    switch (mood) {
+      case 'happy': return '<path d="M142 154Q160 172 178 154" class="c-i"/>';
+      case 'proud': return '<path d="M146 159Q162 167 176 153" class="c-i"/>';
+      case 'sulk': return '<path d="M147 164Q160 154 173 164" class="c-i"/>';
+      case 'wary': return '<path d="M148 160H172" class="c-i"/>';
+      case 'shock': return '<ellipse cx="160" cy="159" rx="8" ry="9" class="c-ip"/>';
+      case 'sleepy': return '<circle cx="160" cy="160" r="4" class="c-ip"/>';
+      case 'sweat': return '<path d="M146 160q4.5-5 9 0t9 0t9 0" class="c-i"/>';
+      default: return '<path d="M149 157Q160 165 171 157" class="c-i"/>';
+    }
+  }
+
+  /* 정면에서 본 차. 전조등이 눈, 그릴이 입 */
+  function frontCar(o) {
+    o = o || {};
+    var mood = o.mood || 'calm', s = o.s || 1, g = '';
+    var wheel = o.night ? 'c-ft2' : 'c-fi';
+    g += '<g transform="translate(' + (o.x || 0) + ' ' + (o.y || 0) + ') scale(' + s + ')">';
+    g += '<rect x="76" y="176" width="34" height="32" rx="9" class="' + wheel + '"/><rect x="210" y="176" width="34" height="32" rx="9" class="' + wheel + '"/>';
+    g += '<rect x="38" y="94" width="24" height="15" rx="6" class="c-ip"/><rect x="258" y="94" width="24" height="15" rx="6" class="c-ip"/>';
+    g += '<path d="M96 108Q100 64 128 60H192Q220 64 224 108Z" class="c-ip"/>';
+    g += '<path d="M109 104Q112 75 131 71H189Q208 75 211 104Z" class="c-ig"/>';
+    if (o.driver === 'stranger') {
+      g += '<circle cx="186" cy="90" r="9.5" class="c-fi"/><path d="M171 104q2-9 15-9t15 9z" class="c-fi"/>';
+      g += '<path d="M174 83H200" class="c-i"/><path d="M179 83q0-11 8-11t8 11z" class="c-fi"/>';
+    } else {
+      g += '<circle cx="186" cy="90" r="9" class="c-ft2"/><path d="M172 104q2-8 14-8t14 8z" class="c-ft2"/>';
+    }
+    if (o.wiper) {
+      g += '<path d="M134 103L153 77M186 103L205 77" class="c-i"/>';
+      g += '<path d="M119 87Q132 70 150 72M171 87Q184 70 202 72" class="c-i c-thin" stroke-dasharray="1 7"/>';
+    }
+    g += '<rect x="58" y="102" width="204" height="86" rx="28" class="c-ip"/>';
+    g += '<circle cx="104" cy="136" r="18" class="c-ip"/><circle cx="216" cy="136" r="18" class="c-ip"/>';
+    g += eyes(mood) + mouth(mood);
+    if (mood === 'happy' || mood === 'proud') g += '<ellipse cx="78" cy="161" rx="9" ry="5" class="c-fs"/><ellipse cx="242" cy="161" rx="9" ry="5" class="c-fs"/>';
+    g += '<rect x="142" y="173" width="36" height="10" rx="3" class="c-ip c-thin"/>';
+    g += '</g>';
+    return g;
+  }
+
+  /* 옆에서 본 차. 오른쪽으로 달린다 */
+  function sideCar(o) {
+    o = o || {};
+    var mood = o.mood || 'calm', down = o.windows === 'down', n = o.guests || 0, g = '';
+    var ink = o.night ? 'c-ni' : 'c-i', wheel = o.night ? 'c-ft2' : 'c-fi';
+    if (o.wind) g += '<path d="M12 120H40M4 142H34M14 164H38" class="' + ink + '"/>';
+    g += '<path d="M50 160Q50 141 70 137L104 131Q121 97 151 95H199Q223 97 241 129L264 137Q278 141 278 157V176Q278 187 267 187H61Q50 187 50 176Z" class="c-ip"/>';
+    var wc = down ? 'c-ip' : 'c-ig';
+    g += '<path d="M120 131Q132 105 152 103H163V131Z" class="' + wc + '"/><path d="M171 103H197Q215 105 229 131H171Z" class="' + wc + '"/>';
+    g += '<circle cx="196" cy="119" r="8.5" class="c-ft2"/><path d="M183 131q2-7 13-7t13 7z" class="c-ft2"/>';
+    if (down) {
+      g += '<path d="M189 113q-9-5-17-1M188 118q-10-2-18 2" class="c-i c-thin"/>';
+      g += '<path d="M126 127H161M173 127H225" class="c-i c-thin"/>';
+    }
+    if (n >= 1) g += '<circle cx="150" cy="120" r="7" class="c-ft2"/>';
+    if (n >= 2) g += '<circle cx="139" cy="123" r="6" class="c-ft2"/>';
+    if (n >= 3) g += '<circle cx="157" cy="124" r="5.5" class="c-ft2"/>';
+    g += '<path d="M167 133V185" class="c-i c-thin"/><path d="M176 143H188M130 143H142" class="c-i c-thin"/>';
+    g += '<circle cx="106" cy="187" r="20" class="' + wheel + '"/><circle cx="106" cy="187" r="8" class="c-fp"/><circle cx="224" cy="187" r="20" class="' + wheel + '"/><circle cx="224" cy="187" r="8" class="c-fp"/>';
+    g += '<ellipse cx="262" cy="148" rx="9" ry="9" class="c-ip"/>';
+    if (mood === 'happy') {
+      g += '<path d="M257 151q5-8 10 0" class="c-i c-thin"/><path d="M265 175q6 4 10-3" class="c-i c-thin"/><ellipse cx="249" cy="170" rx="6" ry="3.5" class="c-fs"/>';
+    } else if (mood === 'shock') {
+      g += '<circle cx="264" cy="148" r="2.6" class="c-fi"/><circle cx="272" cy="175" r="3.6" class="c-ip c-thin"/>';
+    } else {
+      g += '<circle cx="265" cy="149" r="3.8" class="c-fi"/><path d="M268 175h8" class="c-i c-thin"/>';
+    }
+    return g;
+  }
+
+  /* 위에서 본 주차. 화살표 수가 기어를 바꾼 횟수 */
+  function parking(n) {
+    var s = '';
+    s += '<rect width="320" height="34" class="c-ft"/><path d="M0 34H320" class="c-i"/>';
+    s += '<rect x="284" y="7" width="22" height="20" class="c-is c-thin"/><text x="295" y="23" text-anchor="middle" class="c-txs" font-size="15">P</text>';
+    [64, 128, 192, 256].forEach(function (x) { s += '<path d="M' + x + ' 40V150" class="c-spot"/>'; });
+    s += '<rect x="74" y="50" width="44" height="88" rx="12" class="c-it"/><rect x="202" y="50" width="44" height="88" rx="12" class="c-it"/>';
+    var tilt = n >= 6 ? -8 : n >= 4 ? -4 : 0;
+    s += '<g transform="rotate(' + tilt + ' 160 98)">';
+    s += '<rect x="138" y="54" width="44" height="88" rx="13" class="c-ip"/>';
+    s += '<path d="M145 108Q160 103 175 108L173 121H147Z" class="c-ig c-thin"/>';
+    s += '<circle cx="148" cy="133" r="4" class="c-fi"/><circle cx="172" cy="133" r="4" class="c-fi"/>';
+    s += '</g>';
+    for (var i = 0; i < n; i++) {
+      var x = 160 + (i - (n - 1) / 2) * 26, up = i % 2 === 0;
+      s += up ? '<path d="M' + x + ' 210V174M' + (x - 6) + ' 183L' + x + ' 173L' + (x + 6) + ' 183" class="c-i"/>'
+              : '<path d="M' + x + ' 174V210M' + (x - 6) + ' 201L' + x + ' 211L' + (x + 6) + ' 201" class="c-i"/>';
+      s += '<text x="' + x + '" y="233" text-anchor="middle" class="c-tx" font-size="18">' + (up ? 'R' : 'D') + '</text>';
+    }
+    return s;
+  }
+
+  function flake(cx, cy, r, cls) {
+    var s = '';
+    [0, 60, 120].forEach(function (a) {
+      var rad = a * Math.PI / 180, dx = r * Math.cos(rad), dy = r * Math.sin(rad);
+      s += '<path d="M' + (cx - dx).toFixed(1) + ' ' + (cy - dy).toFixed(1) + 'L' + (cx + dx).toFixed(1) + ' ' + (cy + dy).toFixed(1) + '" class="' + cls + ' c-thin"/>';
+    });
+    return s;
+  }
+
+  function fx(kind, night) {
+    var t = night ? 'c-txn' : 'c-tx', ink = night ? 'c-ni' : 'c-i';
+    switch (kind) {
+      case 'q': return '<text x="272" y="64" text-anchor="middle" class="' + t + '" font-size="54">?</text>';
+      case 'ex': return '<text x="274" y="64" text-anchor="middle" class="' + t + '" font-size="54">!</text>';
+      case 'z': return '<text x="252" y="58" class="' + t + '" font-size="28">Z</text><text x="278" y="36" class="' + t + '" font-size="19">z</text>';
+      case 'sweat': return '<path d="M286 40q9 14 0 20q-9-6 0-20Z" class="c-ip c-thin"/>';
+      case 'shiver': return '<text x="40" y="46" class="' + t + '" font-size="24">덜</text><text x="270" y="50" class="' + t + '" font-size="24">덜</text>';
+      case 'note': return '<path d="M112 84V60l14-4v22" class="' + ink + ' c-thin"/><circle cx="107" cy="85" r="5" class="' + (night ? 'c-fni' : 'c-fi') + '"/><circle cx="121" cy="79" r="5" class="' + (night ? 'c-fni' : 'c-fi') + '"/>';
+      default: return '';
+    }
+  }
+
+  /* ---------- 컷 한 장 ---------- */
+
+  function panelSVG(c, st) {
+    var time = c.time || st.time, wet = st.wiper, night = time === 'night', body = '';
+    var tx = night ? 'c-txn' : 'c-tx';
+    switch (c.kind) {
+      case 'stage':
+      case 'front':
+        /* 효과 글자가 있으면 해와 달을 빼서 겹치지 않게 하고, 비만 오는 날은 차를 가운데에 둔다 */
+        body = sky(time, wet, !!c.fx) + rain(wet, night) + ground(night, wet) +
+          frontCar({ mood: c.mood, driver: c.driver, wiper: wet, night: night, s: 0.9, x: (wet && !c.fx) ? 16 : -26, y: 18.8 }) + fx(c.fx, night);
+        break;
+      case 'wiper':
+        body = sky(time, wet, true) + rain(wet, night) +
+          frontCar({ mood: 'calm', wiper: 2, night: night, s: 1.3, x: -48, y: -30 }) +
+          '<text x="40" y="42" class="' + tx + '" font-size="30">쓱</text><text x="272" y="38" class="' + tx + '" font-size="26">쓱</text>';
+        break;
+      case 'park':
+        body = parking(c.n);
+        break;
+      case 'ask': {
+        /* 차가 묻고(흰 말풍선) 주인이 답한다(노란 말풍선). 주인의 말은 고치지 않고 옮긴다 */
+        var lines = splitWhy(c.why), longest = Math.max(lines[0].length, lines.length > 1 ? lines[1].length : 0);
+        var size = lines.length > 1 ? 15 : longest <= 4 ? 26 : longest <= 5 ? 23 : longest <= 6 ? 20 : longest <= 7 ? 17 : 15;
+        body = sky(time, wet, true) + rain(wet, night) + ground(night, wet) +
+          frontCar({ mood: 'calm', wiper: wet, night: night, s: 0.62, x: -8, y: 77 });
+        var q = c.q || ASK_WHERE;
+        if (q.length > 1) {
+          body += '<path d="M22 10H202a12 12 0 0 1 12 12V58a12 12 0 0 1-12 12H92L74 98L72 70H22a12 12 0 0 1-12-12V22a12 12 0 0 1 12-12Z" class="c-ip"/>';
+          body += '<text x="112" y="35" text-anchor="middle" class="c-tx" font-size="17">' + q[0] + '</text><text x="112" y="58" text-anchor="middle" class="c-tx" font-size="17">' + q[1] + '</text>';
+        } else {
+          body += '<path d="M22 12H246a12 12 0 0 1 12 12V44a12 12 0 0 1-12 12H92L74 98L72 56H22a12 12 0 0 1-12-12V24a12 12 0 0 1 12-12Z" class="c-ip"/>';
+          body += '<text x="134" y="41" text-anchor="middle" class="c-tx" font-size="18">' + q[0] + '</text>';
+        }
+        body += '<path d="M176 78H296a12 12 0 0 1 12 12V126a12 12 0 0 1-12 12H176a12 12 0 0 1-12-12V122L136 132L164 106V90a12 12 0 0 1 12-12Z" class="c-is"/>';
+        if (lines.length > 1) {
+          body += '<text x="236" y="104" text-anchor="middle" class="c-txq" font-size="' + size + '">' + esc(lines[0]) + '</text>';
+          body += '<text x="236" y="126" text-anchor="middle" class="c-txq" font-size="' + size + '">' + esc(lines[1]) + '</text>';
+        } else {
+          body += '<text x="236" y="' + (108 + size * 0.36).toFixed(0) + '" text-anchor="middle" class="c-txq" font-size="' + size + '">' + esc(lines[0]) + '</text>';
+        }
+        break;
+      }
+      case 'brake':
+        /* 급하게 선 순간. 차가 놀란 얼굴로만 그린다 */
+        body = sky(time, wet, true) + rain(wet, night) + ground(night, wet) +
+          frontCar({ mood: 'shock', wiper: wet, night: night, s: 1.18, x: -28.8, y: -37 }) +
+          '<text x="40" y="44" class="' + tx + '" font-size="30">끼익</text>' + fx('ex', night);
+        break;
+      case 'accel':
+        /* 세게 밟은 순간. 이것도 차가 놀란 얼굴로만 그린다 */
+        body = sky(time, wet, true) + rain(wet, night) + ground(night, wet) +
+          sideCar({ mood: 'shock', wind: true, night: night }) +
+          '<path d="M8 98H30M2 184H26" class="' + (night ? 'c-ni' : 'c-i') + '"/>' +
+          '<text x="14" y="62" class="' + tx + '" font-size="30">부웅</text>';
+        break;
+      case 'side':
+        body = sky(time, wet) + rain(wet, night) + ground(night, wet) +
+          sideCar({ mood: c.mood, windows: c.windows, guests: c.guests, wind: c.wind, night: night }) + fx(c.fx, night);
+        break;
+      case 'temp':
+        body = sky(time, wet, true) + rain(wet, night) + ground(night, wet) +
+          frontCar({ mood: c.mood, wiper: wet, night: night, s: 0.84, x: -14, y: 31 }) +
+          '<text x="266" y="86" text-anchor="middle" class="' + tx + '" font-size="48">' + c.t + '°</text>';
+        if (c.t <= 18) body += flake(244, 124, 11, night ? 'c-ni' : 'c-i') + flake(286, 142, 9, night ? 'c-ni' : 'c-i') + flake(262, 170, 10, night ? 'c-ni' : 'c-i');
+        else body += '<path d="M246 180q8-10 0-20t0-20M266 180q8-10 0-20t0-20M286 180q8-10 0-20t0-20" class="' + (night ? 'c-ni' : 'c-i') + '"/>';
+        break;
+      default: /* end */
+        body = sky(time, wet, true) + rain(wet, night) + ground(night, wet) +
+          frontCar({ mood: c.mood, driver: c.driver, wiper: wet, night: night, s: 1.18, x: -28.8, y: -37 }) + fx(c.fx, night);
+    }
+    return '<svg viewBox="0 0 320 240" role="img" aria-label="' + esc(c.cap) + '">' + body + '</svg>';
+  }
+
+  /* ---------- 사건: 컷과 대사 틀 ---------- */
+
+  var EV = {
+    stranger: {
+      title: '낯선 사람', line: function () { return '운전석이 한 뼘 뒤로 밀렸다. 누가 탔다.'; },
+      cut: function () { return { kind: 'front', mood: 'wary', driver: 'stranger', fx: 'q', cap: '운전석이 평소보다 한 뼘 뒤로 밀렸다. 등받이도 누웠다.', proof: '운전석 앞뒤 위치 · 등받이 각도' }; },
+      mid: function () { return { kind: 'end', mood: 'wary', driver: 'stranger', fx: 'q', cap: '…누구세요?' }; },
+      end: function () { return { kind: 'end', mood: 'sulk', cap: '주인이 돌아오면 전부 제자리로 돌려놓겠지. 그때까지는 삐져 있기로 했다.' }; },
+      both: function () { return '…누구세요? 주인이 돌아올 때까지 삐져 있기로 했다.'; }
+    },
+    parkOne: {
+      title: '한 번에', line: function () { return '주차, 한 번에 들어갔다. 나만 봤다.'; },
+      cut: function () { return { kind: 'park', n: 1, cap: '주차가 한 번에 들어갔다. 한 번에.', proof: '주차 직전 2분, 기어를 바꾼 횟수 1번' }; },
+      mid: function () { return { kind: 'end', mood: 'shock', fx: 'ex', cap: '지난주는 평균 다섯 번이었다.', proof: '지난주 주차 평균 5번' }; },
+      end: function () { return { kind: 'end', mood: 'happy', cap: '아무도 못 봤다. 나만 봤다.' }; }
+    },
+    parkBetter: {
+      title: '주차가 늘었다', line: function (st) { return '주차 ' + NUM[st.park] + ' 번 만에. 지난주보다 ' + NUM[USUAL.park - st.park] + ' 번 줄었다.'; },
+      cut: function (st) { return { kind: 'park', n: st.park, cap: '주차는 ' + NUM[st.park] + ' 번 만에 들어갔다.', proof: '주차 직전 2분, 기어를 바꾼 횟수 ' + st.park + '번' }; },
+      mid: function () { return { kind: 'end', mood: 'calm', cap: '지난주는 평균 다섯 번이었다.', proof: '지난주 주차 평균 5번' }; },
+      end: function () { return { kind: 'end', mood: 'proud', cap: '늘고 있다. 말은 안 했다.' }; }
+    },
+    parkWorse: {
+      title: '앞으로, 뒤로', line: function (st) { return '주차 ' + NUM[st.park] + ' 번 만에. 괜찮다, 나는 시간이 많다.'; },
+      cut: function (st) { return { kind: 'park', n: st.park, cap: '주차는 ' + NUM[st.park] + ' 번 만에 들어갔다.', proof: '주차 직전 2분, 기어를 바꾼 횟수 ' + st.park + '번' }; },
+      mid: function () { return { kind: 'end', mood: 'sweat', fx: 'sweat', cap: '앞으로, 뒤로, 다시 앞으로.', proof: '기어 R과 D를 오간 기록' }; },
+      end: function () { return { kind: 'end', mood: 'calm', cap: '괜찮다. 나는 시간이 많다.' }; }
+    },
+    windows: {
+      title: '창문을 전부 내린 날', line: function () { return '창문을 전부 내리고 달렸다. 바람이 좋았다.'; },
+      cut: function () { return { kind: 'side', mood: 'happy', windows: 'down', wind: true, cap: '주인은 창문을 전부 내리고 달렸다.', proof: '창문 네 곳의 위치' }; },
+      mid: function () { return { kind: 'end', mood: 'happy', cap: '바람이 실내를 한 바퀴 돌고 나갔다.' }; },
+      end: function () { return { kind: 'end', mood: 'happy', cap: '기분이 좋았을 거다. 나도 그랬다.' }; }
+    },
+    windowsRain: {
+      title: '비 오는데 창문', line: function () { return '비가 오는데 창문을 내렸다. 시트가 젖었다.'; },
+      cut: function () { return { kind: 'side', mood: 'shock', windows: 'down', wind: true, cap: '비가 오는데 창문을 전부 내렸다.', proof: '와이퍼 켜짐 · 창문 네 곳의 위치' }; },
+      mid: function () { return { kind: 'end', mood: 'shock', fx: 'q', cap: '…비 오는데?' }; },
+      end: function () { return { kind: 'end', mood: 'sulk', cap: '시트가 젖었다. 내 시트다.' }; }
+    },
+    cold: {
+      title: '에어컨 최대', line: function (st) { return '에어컨 ' + st.temp + '도. 나는 좀 추웠다.'; },
+      cut: function (st) { return { kind: 'temp', t: st.temp, mood: 'shock', cap: '에어컨은 ' + st.temp + '도, 바람은 최대.', proof: '공조 설정 온도 · 풍량' }; },
+      mid: function () { return { kind: 'end', mood: 'calm', cap: '주인은 시원했을 거다.' }; },
+      end: function () { return { kind: 'end', mood: 'sweat', fx: 'shiver', cap: '나는 좀 추웠다.' }; }
+    },
+    hot: {
+      title: '히터를 올린 날', line: function (st) { return '히터 ' + st.temp + '도. 손이 차가웠나 보다.'; },
+      cut: function (st) { return { kind: 'temp', t: st.temp, mood: 'calm', cap: '히터를 ' + st.temp + '도까지 올렸다.', proof: '공조 설정 온도' }; },
+      mid: function () { return { kind: 'end', mood: 'calm', cap: '주인 손이 차가웠나 보다.' }; },
+      end: function () { return { kind: 'end', mood: 'happy', cap: '나는 괜찮다. 원래 따뜻한 편이다.' }; }
+    },
+    guests: {
+      title: '손님', line: function (st) { return '뒷자리에 ' + NUM[st.guests] + ' 명. 오랜만에 시끄러웠다.'; },
+      cut: function (st) { return { kind: 'side', mood: 'happy', guests: st.guests, fx: 'note', cap: '오늘은 뒷자리에 ' + NUM[st.guests] + ' 명이 탔다.', proof: '좌석 점유 · 안전벨트' }; },
+      mid: function () { return { kind: 'end', mood: 'proud', cap: '안전벨트는 다 맸다. 내가 확인했다.', proof: '뒷좌석 안전벨트' }; },
+      end: function () { return { kind: 'end', mood: 'happy', cap: '오랜만에 시끄러웠다. 싫지 않았다.' }; },
+      both: function () { return '안전벨트는 다 맸다. 오랜만에 시끄러웠다. 싫지 않았다.'; }
+    },
+    wiperFast: {
+      title: '비 오는 날', line: function () { return '와이퍼를 가장 빠르게. 열심히 닦았다.'; },
+      cut: function () { return { kind: 'wiper', cap: '와이퍼가 가장 빠르게 움직였다.', proof: '와이퍼 빠르기 단계' }; },
+      mid: function () { return { kind: 'end', mood: 'proud', cap: '앞이 잘 보이게 열심히 닦았다.' }; },
+      end: function () { return { kind: 'end', mood: 'sulk', cap: '칭찬은 없었다.' }; }
+    },
+    late: {
+      title: '밤 열한 시', line: function () { return '평소라면 주차장에서 자고 있을 시간이다.'; },
+      cut: function () { return { kind: 'front', mood: 'sleepy', fx: 'z', cap: '평소라면 주차장에서 자고 있을 시간이다.', proof: '출발 시각 · 지난 8주 같은 시간대 주행 0번' }; },
+      mid: function () { return { kind: 'end', mood: 'sleepy', cap: '어디 가는 길인지 나는 묻지 않았다.' }; },
+      end: function () { return { kind: 'end', mood: 'calm', cap: '어디 갔는지는 말하지 않겠다. 나는 차니까.' }; },
+      both: function () { return '어디 가는 길인지 묻지 않았다. 나는 차니까.'; }
+    },
+    brake: {
+      title: '급하게 선 날', line: function () { return '한 번 급하게 섰다. 나는 놀랐다.'; },
+      cut: function () { return { kind: 'brake', cap: '오는 길에 한 번 급하게 섰다.', proof: '1초에 시속 7.5km 넘게 줄어든 순간 1번' }; },
+      mid: function () { return { kind: 'end', mood: 'shock', cap: '나는 놀랐다. 주인도 놀랐을 거다.' }; },
+      end: function () { return { kind: 'end', mood: 'sweat', fx: 'sweat', cap: '아무 일 없었다. 그러면 됐다.' }; }
+    },
+    accel: {
+      title: '세게 밟은 날', line: function () { return '한 번 세게 밟았다. 나는 놀랐다.'; },
+      cut: function () { return { kind: 'accel', cap: '오는 길에 한 번 세게 밟았다.', proof: '1초에 시속 11km 넘게 늘어난 순간 1번' }; },
+      mid: function () { return { kind: 'end', mood: 'shock', cap: '갑자기였다. 나는 준비가 안 돼 있었다.' }; },
+      end: function () { return { kind: 'end', mood: 'calm', cap: '급한 일이 있었나 보다. 나는 천천히 가는 것도 좋다.' }; }
+    }
+  };
+
+  /* 주인의 한마디와 엮을 때 쓰는, 사건을 한 문장으로 줄인 것 */
+  var TIE = {
+    stranger: function () { return '운전석은 누가 바꿔 놓았다.'; },
+    parkOne: function () { return '주차는 한 번에 들어갔다.'; },
+    parkBetter: function (st) { return '주차는 지난주보다 ' + NUM[USUAL.park - st.park] + ' 번 줄었다.'; },
+    parkWorse: function (st) { return '주차는 ' + NUM[st.park] + ' 번 걸렸다.'; },
+    windows: function () { return '창문은 전부 내리고 달렸다.'; },
+    windowsRain: function () { return '비가 오는데 창문을 내렸다.'; },
+    cold: function (st) { return '에어컨은 ' + st.temp + '도였다.'; },
+    hot: function (st) { return '히터는 ' + st.temp + '도였다.'; },
+    guests: function (st) { return '뒷자리에는 ' + NUM[st.guests] + ' 명이 탔다.'; },
+    wiperFast: function () { return '비가 쏟아져서 와이퍼가 가장 빠르게 움직였다.'; },
+    late: function () { return '평소라면 자고 있을 시간이었다.'; },
+    brake: function () { return '오는 길에 한 번 급하게 섰다.'; },
+    accel: function () { return '오는 길에 한 번 세게 밟았다.'; }
+  };
+
+  /* 차의 질문. 한 번 세울 때 하나만 묻는다 */
+  var ASK_WHERE = ['어디 가시는 길이었나요?'];
+  var JOLT_Q = { brake: ['아까 급하게 서셨죠.', '괜찮으세요?'], accel: ['아까 세게 밟으셨죠.', '급한 일 있었나요?'] };
+
+  /* 급하게 서거나 세게 밟은 이유를 가르는 낱말 사전. 차의 반응은 걱정과 바람만 쓴다 */
+  var JOLT = [
+    { k: 'lapse', words: ['한눈', '전방주시', '폰', '딴생각', '졸다', '졸려', '졸음', '멍때', '멍 때'], close: '나는 심장이 없는데도 멎는 줄 알았다. 다음에는 같이 앞을 봤으면 좋겠다.', mood: 'sweat' },
+    { k: 'near', words: ['사고', '날 뻔', '날뻔', '박을 뻔', '죽을 뻔', '큰일'], close: '아무 일 없어서 다행이다. 오늘 일은 여기 적어 둔다.', mood: 'sweat' },
+    { k: 'sudden', words: ['끼어들', '칼치기', '갑자기', '튀어나', '고양이', '강아지', '사람', '어린이', '자전거', '킥보드', '오토바이'], close: '잘 섰다. 그러라고 브레이크가 있다.', mood: 'proud' },
+    { k: 'signal', words: ['신호', '노란불', '빨간불', '황색'], close: '서는 게 맞다. 나는 서는 것도 잘한다.', mood: 'proud' },
+    { k: 'hurry', words: ['늦', '지각', '급해', '급한', '바빠', '바쁜'], close: '5분 일찍 나오면 나도 덜 놀란다.', mood: 'sulk' },
+    { k: 'slowcar', words: ['앞차', '느리', '느려', '답답', '추월'], close: '나는 느린 것도 좋은데.', mood: 'sulk' }
+  ];
+  var JOLT_UNKNOWN = { k: 'unknown', close: '놀랐지만 괜찮다. 적어 둔다.', mood: 'calm' };
+
+  function classifyJolt(why) {
+    for (var i = 0; i < JOLT.length; i++) {
+      for (var j = 0; j < JOLT[i].words.length; j++) if (why.indexOf(JOLT[i].words[j]) !== -1) return JOLT[i];
+    }
+    return JOLT_UNKNOWN;
+  }
+
+  /* “…”라고 / “…”이라고. 마지막 글자의 받침으로 고른다 */
+  function quoted(s) {
+    var code = s.charCodeAt(s.length - 1), batchim = code >= 0xAC00 && code <= 0xD7A3 && (code - 0xAC00) % 28 !== 0;
+    return '“' + s + '”' + (batchim ? '이라고' : '라고');
+  }
+
+  function stageCut(st) {
+    var t = st.time === 'night' ? '화요일 밤 11시.' : st.time === 'dusk' ? '화요일, 해 질 녘.' : '화요일 낮.';
+    var w = st.wiper === 2 ? '비가 쏟아졌다.' : st.wiper === 1 ? '비가 왔다.' : st.time === 'night' ? '해가 진 뒤였다.' : st.time === 'dusk' ? '해가 지고 있었다.' : '비는 오지 않았다.';
+    var proof = '출발 시각' + (st.time !== 'day' ? ' · 일몰 계산' : '') + (st.wiper ? ' · 와이퍼' : '');
+    return { kind: 'stage', mood: 'calm', cap: t + ' ' + w, proof: proof };
+  }
+
+  /* 평소와 다른 일에 점수를 주고, 높은 두 개로 한 화를 만든다 */
+  function build(st) {
+    var ev = [];
+    if (st.stranger) ev.push({ k: 'stranger', w: 9, t: 1 });
+    if (st.park === 1) ev.push({ k: 'parkOne', w: 8, t: 3 });
+    else if (st.park <= USUAL.park - 2) ev.push({ k: 'parkBetter', w: 5 + USUAL.park - st.park, t: 3 });
+    else if (st.park >= USUAL.park + 2) ev.push({ k: 'parkWorse', w: 4.2 + st.park - USUAL.park, t: 3 });
+    if (st.windows) ev.push({ k: st.wiper ? 'windowsRain' : 'windows', w: st.wiper ? 8.5 : 6, t: 2 });
+    if (st.temp <= 18) ev.push({ k: 'cold', w: 4 + 18 - st.temp, t: 2 });
+    else if (st.temp >= 26) ev.push({ k: 'hot', w: 4 + st.temp - 26, t: 2 });
+    if (st.guests > 0) ev.push({ k: 'guests', w: 3.5 + st.guests, t: 1.5 });
+    if (st.wiper === 2) ev.push({ k: 'wiperFast', w: 4.5, t: 2 });
+    if (st.time === 'night') ev.push({ k: 'late', w: 5.5, t: 1 });
+    if (st.jolt === 'brake') ev.push({ k: 'brake', w: 7.5, t: 2 });
+    if (st.jolt === 'accel') ev.push({ k: 'accel', w: 7, t: 2 });
+    ev.sort(function (a, b) { return b.w - a.w; });
+
+    var stage = stageCut(st);
+    var quiet = { kind: 'front', mood: 'calm', cap: '어제와 비슷한 시간에 나가, 비슷한 시간만큼 달렸다.', proof: '출발 시각과 주행 시간이 평소 범위' };
+
+    /* 놀란 순간이 있었고 주인이 이유를 말했으면, 그 순간이 그 화의 중심이 된다 */
+    if (st.jolt !== 'none' && st.why2) {
+      var jq = JOLT_Q[st.jolt], jc = classifyJolt(st.why2), je = EV[st.jolt];
+      if (st.why) { stage.cap += ' 주인은 ' + quoted(st.why) + ' 했다.'; stage.proof += ' · 주인이 한 말'; }
+      return {
+        title: st.why || st.why2, line: je.line(st), now: je.cut(st), ask: jq, said: st.why2,
+        cuts: [stage, je.cut(st),
+          { kind: 'ask', q: jq, why: st.why2, cap: '세우고 나서 물었다. 주인이 답했다. “' + st.why2 + '”', proof: '주인이 한 말' },
+          { kind: 'end', mood: jc.mood, fx: jc.mood === 'sweat' ? 'sweat' : '', cap: '주인은 ' + quoted(st.why2) + ' 했다. ' + jc.close }]
+      };
+    }
+
+    /* 어디 가는 길이었는지 말했으면, 그 말이 제목이 되고 차의 반응이 상황을 따라간다 */
+    if (st.why) {
+      var ctx = classify(st.why), topK = ev.length ? ev[0].k : null, tie = topK ? TIE[topK](st) : '';
+      return {
+        title: st.why, line: '“' + st.why + '” 다녀온 길. ' + (topK ? EV[topK].line(st) : '오늘도 평소대로였다.'),
+        now: topK ? EV[topK].cut(st) : quiet, ask: ASK_WHERE, said: st.why,
+        cuts: [stage,
+          { kind: 'ask', q: ASK_WHERE, why: st.why, cap: '세우고 나서 물었다. 주인이 말했다. “' + st.why + '”', proof: '주인이 한 말' },
+          topK ? EV[topK].cut(st) : quiet,
+          { kind: 'end', mood: ctx.mood, cap: ctx.open + (tie ? ' ' + tie : '') + ' ' + ctx.close }]
+      };
+    }
+
+    if (!ev.length) {
+      return {
+        title: '별일 없는 날', line: '오늘도 평소대로. 별일 없었다.', now: quiet,
+        cuts: [stage, quiet,
+          { kind: 'park', n: st.park, cap: '주차는 ' + NUM[st.park] + ' 번. 평소와 비슷했다.', proof: '주차 직전 2분, 기어를 바꾼 횟수 ' + st.park + '번' },
+          { kind: 'end', mood: 'happy', cap: '별일 없는 날이었다. 나는 그런 날이 좋다.' }]
+      };
+    }
+    var a = EV[ev[0].k], cuts;
+    if (ev.length === 1) {
+      cuts = [stage, a.cut(st), a.mid(st), a.end(st)];
+    } else {
+      var b = EV[ev[1].k];
+      var pair = [{ e: a, t: ev[0].t }, { e: b, t: ev[1].t }].sort(function (p, q) { return p.t - q.t; });
+      var end = a.end(st);
+      end.cap = a.both ? a.both(st) : a.mid(st).cap + ' ' + end.cap;
+      cuts = [stage, pair[0].e.cut(st), pair[1].e.cut(st), end];
+    }
+    return { title: a.title, line: a.line(st), cuts: cuts, now: a.cut(st) };
+  }
+
+  /* ---------- 화면에 그리기 ---------- */
+
+  var form = document.getElementById('console');
+  var strip = document.getElementById('strip');
+
+  function readState() {
+    var f = new FormData(form);
+    return {
+      time: f.get('time'), wiper: Number(f.get('wiper')), park: Number(f.get('park')),
+      windows: f.get('windows') === 'down', temp: Number(f.get('temp')),
+      guests: Number(f.get('guests')), stranger: f.get('stranger') === 'yes',
+      why: String(f.get('why') || '').trim().slice(0, 16),
+      jolt: f.get('jolt') || 'none',
+      why2: (f.get('jolt') || 'none') === 'none' ? '' : String(f.get('why2') || '').trim().slice(0, 16)
+    };
+  }
+
+  function stripHTML(ep, st) {
+    return ep.cuts.map(function (c, i) {
+      return '<figure class="cut"><div class="cut-frame"><span class="cut-no">' + (i + 1) + '</span>' + panelSVG(c, st) + '</div>' +
+        '<figcaption><p class="cap">' + esc(c.cap) + '</p><p class="proof">' + (c.proof ? '근거 · ' + esc(c.proof) : '차의 생각') + '</p></figcaption></figure>';
+    }).join('');
+  }
+
+  var lastJolt = 'none';
+  var JOLT_DEFAULT = { brake: '한눈팔다가 사고 날 뻔', accel: '앞차가 너무 느려서' };
+
+  function render() {
+    /* 놀란 순간을 새로 고르면 예시 답을 하나 채워 준다. 지우면 다시 채우지 않는다 */
+    var joltNow = new FormData(form).get('jolt') || 'none';
+    if (joltNow !== lastJolt) {
+      document.getElementById('why2').value = joltNow === 'none' ? '' : JOLT_DEFAULT[joltNow];
+      lastJolt = joltNow;
+    }
+    document.getElementById('ask2-body').hidden = joltNow === 'none';
+    if (joltNow !== 'none') document.getElementById('ask2-q').textContent = '차가 묻습니다. “' + JOLT_Q[joltNow].join(' ') + '”';
+
+    var st = readState(), ep = build(st);
+    document.getElementById('park-out').textContent = st.park + '번';
+    document.getElementById('temp-out').textContent = st.temp + '도';
+    document.getElementById('guests-out').textContent = st.guests + '명';
+    document.getElementById('ep-title').textContent = '제12화 · ' + ep.title;
+    document.getElementById('line').textContent = ep.line;
+    strip.innerHTML = stripHTML(ep, st);
+    var asking = ep.ask || (st.jolt !== 'none' ? JOLT_Q[st.jolt] : ASK_WHERE);
+    document.getElementById('now-ask').textContent = asking.join(' ');
+    document.getElementById('now-answers').innerHTML = ep.said
+      ? '<span class="said">' + esc(ep.said) + '</span>'
+      : '<span>말로 답하기</span><span>쓰기</span><span>출근</span><span>약속</span><span>그냥</span>';
+    document.getElementById('now-cut').innerHTML = panelSVG(ep.now, st);
+    document.getElementById('now-line').textContent = ep.line;
+    document.getElementById('now-kicker').textContent = '방금 한 컷 · 화요일 ' + (st.time === 'night' ? '23:04' : st.time === 'dusk' ? '18:42' : '14:10');
+  }
+
+  form.addEventListener('input', render);
+  form.addEventListener('submit', function (e) { e.preventDefault(); });
+  form.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-why]') : null;
+    if (!b) return;
+    var box = b.parentNode.id === 'why2-chips' ? 'why2' : 'why';
+    document.getElementById(box).value = b.getAttribute('data-why');
+    render();
+  });
+  window.__cartoon = { build: build, panelSVG: panelSVG, stripHTML: stripHTML, EV: EV };
+  render();
+
+  /* 본문의 고정 예시: 급하게 선 순간이 있었고 주인이 이유를 말한 날 */
+  var fixed = { time: 'day', wiper: 0, park: 5, windows: false, temp: 22, guests: 0, stranger: false, why: '', jolt: 'brake', why2: '한눈팔다가 사고 날 뻔' };
+  document.getElementById('strip2').innerHTML = stripHTML(build(fixed), fixed);
+})();
+</script>
+
+</body>
+</html>

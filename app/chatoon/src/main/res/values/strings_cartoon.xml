@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 카툰 화면의 글. 만화 속 글(차의 일기, 대사)은 여기 두지 않는다: 규칙과 함께 domain/cartoon에 있다. -->
+<resources>
+    <!-- 컷 아래: 이 컷이 어떤 신호에서 나왔는지 -->
+    <string name="cartoon_proof">근거 · %1$s</string>
+    <!-- 컷 아래: 사실이 아니라 차의 감상을 그린 컷 -->
+    <string name="cartoon_thought">차의 생각</string>
+    <!-- 화 제목 앞에 붙는 회차 -->
+    <string name="cartoon_episode_number">제%1$d화</string>
+    <!-- 메인 화면 탭 -->
+    <string name="tab_today">이번 화</string>
+    <string name="tab_series">지난 화</string>
+    <!-- 화 머리 -->
+    <string name="cartoon_time_day">낮</string>
+    <string name="cartoon_time_dusk">해 질 녘</string>
+    <string name="cartoon_time_night">밤</string>
+    <string name="series_month">%1$d월에 운전한 %2$s, 만화 %3$d화로 남았어요</string>
+    <string name="series_week">%1$s · %2$s 운전 · %3$d화</string>
+    <string name="cartoon_unfold">펼치기</string>
+    <string name="cartoon_fold">접기</string>
+    <string name="cartoon_older">이전 화</string>
+    <string name="cartoon_newer">다음 화</string>
+    <!-- 아직 주행이 없을 때 -->
+    <string name="cartoon_empty_title">아직 그린 만화가 없어요</string>
+    <string name="cartoon_empty_body">첫 주행을 마치고 P단에 세우면 여기에 첫 화가 그려져요.</string>
+    <!-- 앱 정체성(왼쪽 메뉴 위, 처음 소개 화면) -->
+    <string name="app_tagline">차가 그리는 내 운전 만화</string>
+    <string name="tab_about">차툰 소개</string>
+    <string name="intro_start">시작하기</string>
+    <!-- 첫 안내(아직 그린 만화가 없을 때, 차툰 소개 탭, 처음 실행) -->
+    <string name="welcome_title">운전한 시간을 차가 만화로 남겨 둘게요</string>
+    <string name="welcome_body">한두 시간 운전하고 나면 그 시간은 그냥 지나가 버려요. 차툰은 그사이 차가 본 일을 주차할 때마다 네 컷 만화로 그려 둡니다.</string>
+    <string name="welcome_step1_title">평소처럼 운전해요</string>
+    <string name="welcome_step1_body">창문을 내린 때, 비가 와 와이퍼를 켠 때, 급하게 선 때를 차가 봐요. 위치와 경로는 보지 않아요.</string>
+    <string name="welcome_step2_title">P단에 세우면 네 컷이 그려져요</string>
+    <string name="welcome_step2_body">컷마다 어느 차량 신호에서 나온 장면인지 ‘근거’를 함께 적고, 차가 한마디를 읽어 줘요.</string>
+    <string name="welcome_step3_title">차가 물으면 답해 주세요</string>
+    <string name="welcome_step3_body">“어디 가시는 길이었나요?”에 답하면 그날의 이야기로 다시 그려요. 그린 화는 ‘지난 화’에 쌓여요.</string>
+    <string name="welcome_sample_label">이렇게 그려져요 · 예시(실제 기록이 아니에요)</string>
+    <!-- 차의 질문 카드 -->
+    <string name="cartoon_ask_from_car">차가 물어요</string>
+    <string name="cartoon_ask_placeholder">직접 적기 (16자까지)</string>
+    <string name="cartoon_ask_send">답하기</string>
+    <string name="cartoon_ask_skip">넘기기</string>
+    <!-- 말로 답하기 -->
+    <string name="cartoon_dictation_start">말로 답하기</string>
+    <string name="cartoon_dictation_stop">그만</string>
+    <string name="cartoon_dictation_starting">준비하고 있어요…</string>
+    <string name="cartoon_dictation_listening">듣고 있어요. 한 문장으로 말씀해 주세요.</string>
+    <string name="cartoon_dictation_failed">잘 듣지 못했어요. 다시 말하거나 직접 적어 주세요.</string>
+    <!-- 차량 속도 권한(급가속·급감속을 세어 차가 놀란 순간을 그린다) -->
+    <string name="cartoon_speed_off">차량 속도 권한을 켜면 급하게 서거나 가속 페달을 세게 밟은 순간도 만화로 그려요.</string>
+    <string name="settings_speed_title">차량 속도 권한</string>
+    <string name="settings_speed_on">켜져 있어요. 급가속·급감속 횟수만 세고 속도 값은 저장하지 않아요.</string>
+    <!-- 차의 목소리 -->
+    <string name="cartoon_voice_listen">🔊 차의 한마디 듣기</string>
+    <string name="cartoon_voice_stop">■ 멈추기</string>
+    <!-- 실내 조명 연출 -->
+    <string name="cartoon_light_offer">실내 조명도 이야기에 맞춰 바꿔 볼까요? 밤 이야기는 남색, 해 질 녘은 주황으로 바뀌고, 다 보면 원래대로 돌아가요.</string>
+    <string name="cartoon_light_on">켜기</string>
+    <string name="cartoon_light_off">끄기</string>
+    <string name="settings_light_title">실내 조명 연출</string>
+    <string name="settings_light_on_body">켜져 있어요. 주차 중에 만화를 볼 때만 그 화의 색으로 바꾸고, 다 보면 원래대로 돌려놔요.</string>
+    <string name="settings_light_off_body">꺼져 있어요. 켜면 주차 중에 만화를 볼 때 실내 조명이 그 화의 시간과 날씨 색으로 바뀌어요.</string>
+    <string name="consent_light_title">실내 조명</string>
+    <string name="consent_light">‘실내 조명 연출’을 켠 경우에만, 주차 중에 만화를 보는 동안 실내 조명의 색과 밝기를 바꾸고 다 보면 바꾸기 전 값으로 되돌립니다. 기본은 꺼져 있습니다.</string>
+    <!-- 설정: 내 차 색 -->
+    <string name="settings_paint_title">내 차 색</string>
+    <string name="settings_paint_body">만화 속 차를 이 색으로 그려요. 지금 고른 색 · %1$s</string>
+    <string name="paint_red">빨강</string>
+    <string name="paint_orange">주황</string>
+    <string name="paint_yellow">노랑</string>
+    <string name="paint_green">초록</string>
+    <string name="paint_sky">하늘색</string>
+    <string name="paint_blue">파랑</string>
+    <string name="paint_purple">보라</string>
+    <string name="paint_pink">분홍</string>
+    <string name="paint_white">흰색</string>
+    <string name="paint_silver">은색</string>
+    <string name="paint_charcoal">짙은 회색</string>
+</resources>

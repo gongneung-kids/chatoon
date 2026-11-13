@@ -1,0 +1,7 @@
+tts init request mode=ON_DEVICE
+tts init ok
+tts speak requested (25 chars)
+tts onReady
+tts onStart
+tts first rms 5092.1297988977185
+tts onDone

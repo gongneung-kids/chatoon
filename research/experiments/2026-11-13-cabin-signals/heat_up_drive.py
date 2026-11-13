@@ -1,0 +1,10 @@
+exec(open(__file__.replace("h1.py","r.py")).read())
+with vc.Console() as c:
+    dv.set_baseline(c)
+    dv.launch_app(); time.sleep(2)
+    c.gear("Drive"); time.sleep(4)
+    c.cabin_temp(26); time.sleep(2); c.seat_heat(2); time.sleep(4)
+    c.gear("Park"); time.sleep(4)
+    dv.tap_text("넘기기"); time.sleep(2); dv.scroll_to_top(); time.sleep(2)
+    shot("hvac_rel"); print(texts()[:14])
+    dv.set_baseline(c)

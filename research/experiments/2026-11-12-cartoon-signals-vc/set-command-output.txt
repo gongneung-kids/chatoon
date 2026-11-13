@@ -1,0 +1,10 @@
+$ python3 tools/vc.py set seatheat 1
+seatheat = 1 (적용 확인됨)
+$ python3 tools/vc.py set seatheat 0
+seatheat = 0 (적용 확인됨)
+$ python3 tools/vc.py set fan 9   (범위 밖)
+오류: 풍량 값은 1~8 사이여야 합니다(받은 값 9).
+(종료 코드 1)
+$ python3 tools/vc.py set temp abc   (숫자가 아님)
+오류: temp에 쓸 수 없는 값입니다: abc
+(종료 코드 1)

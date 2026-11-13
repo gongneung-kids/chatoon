@@ -1,0 +1,15 @@
+처음: {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 22.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  창문 100  →  {"windows": {"front_left": 100, "front_right": 100, "rear_left": 100, "rear_right": 100}, "driver_temp_c": 22.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  창문 50  →  {"windows": {"front_left": 50, "front_right": 50, "rear_left": 50, "rear_right": 50}, "driver_temp_c": 22.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  창문 0  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 22.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  공조 온도 17  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 17.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  공조 온도 26.5  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+  됨  풍량 8  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 8, "driver_seat_temp": 0, "trunk": false}
+  됨  풍량 1  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 1, "driver_seat_temp": 0, "trunk": false}
+  됨  시트 열선 3  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 1, "driver_seat_temp": 3, "trunk": false}
+  됨  시트 통풍 -2  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 1, "driver_seat_temp": -2, "trunk": false}
+  됨  트렁크 열림  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 1, "driver_seat_temp": -2, "trunk": true}
+  됨  트렁크 닫힘  →  {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 26.5, "fan_speed": 1, "driver_seat_temp": -2, "trunk": false}
+끝: {"windows": {"front_left": 0, "front_right": 0, "rear_left": 0, "rear_right": 0}, "driver_temp_c": 22.0, "fan_speed": 3, "driver_seat_temp": 0, "trunk": false}
+처음과 같음
+실패 0건

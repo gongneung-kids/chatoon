@@ -1,0 +1,46 @@
+--- why1 ---
+stt init request mode=ON_DEVICE pcm=files/why1.pcm
+stt init ok
+stt sending pcm 73682 bytes
+stt onStartedRecognition
+stt onUpdated completed=false text=[면접]
+stt onStartedRecognition
+stt onUpdated completed=false text=[면접 보러 갔]
+stt onStartedRecognition
+stt onUpdated completed=false text=[면접 보러 갔어요]
+stt pcm send complete
+stt onEndedRecognition
+stt onUpdated completed=true text=[면접 보러 갔어요]
+stt epd on=0 off=64000
+--- why2 ---
+stt init request mode=ON_DEVICE pcm=files/why2.pcm
+stt init ok
+stt sending pcm 77938 bytes
+stt onStartedRecognition
+stt onUpdated completed=false text=[앞차가 너]
+stt onStartedRecognition
+stt onUpdated completed=false text=[앞차가 너무 느려]
+stt onStartedRecognition
+stt onUpdated completed=false text=[앞차가 너무 느려서요]
+stt pcm send complete
+stt onEndedRecognition
+stt onUpdated completed=true text=[앞차가 너무 느려서요]
+stt epd on=0 off=64000
+--- why3 ---
+stt init request mode=ON_DEVICE pcm=files/why3.pcm
+stt init ok
+stt sending pcm 100432 bytes
+stt onStartedRecognition
+stt onUpdated completed=false text=[한눈팔]
+stt onStartedRecognition
+stt onUpdated completed=false text=[한눈 팔다가]
+stt onStartedRecognition
+stt onUpdated completed=false text=[한눈 팔다가 사고]
+stt onStartedRecognition
+stt onUpdated completed=false text=[한눈 팔다가 사고 날 뻔했]
+stt onStartedRecognition
+stt onUpdated completed=false text=[한눈 팔다가 사고 날 뻔했어요]
+stt pcm send complete
+stt onEndedRecognition
+stt onUpdated completed=true text=[한눈 팔다가 사고 날 뻔했어요]
+stt epd on=0 off=96000

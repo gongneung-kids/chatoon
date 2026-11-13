@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature android:name="android.hardware.type.automotive" android:required="true" />
+
+    <!-- Pleos Vehicle SDK: 주행 기록은 읽기 권한만 쓴다. 제어는 주인이 켠 실내 조명 연출(CONTROL_CAR_LIGHTS) 하나뿐이다. -->
+    <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" /> <!-- 와이퍼 상태, 창문 위치 -->
+    <uses-permission android:name="pleos.car.permission.CAR_LIGHTS" />  <!-- 실내 조명의 원래 값 읽기(연출 뒤 되돌리기) -->
+    <!-- 실내 조명 연출: 주인이 켠 경우에만, 주차 중에 만화를 보는 동안 앰비언트 라이트 색·밝기를 바꾸고 되돌린다. -->
+    <uses-permission android:name="pleos.car.permission.CONTROL_CAR_LIGHTS" />
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />   <!-- 누적 주행거리 -->
+    <uses-permission android:name="pleos.car.permission.CAR_CLIMATE" /> <!-- 공조 설정 온도·풍량(읽기만) -->
+    <uses-permission android:name="pleos.car.permission.CAR_SEATS" />   <!-- 운전석 시트 열선·통풍(읽기만) -->
+
+
+    <!-- Pleos SpeechToText: 차의 질문에 말로 답할 때만, 기기 안(ON_DEVICE)에서 받아쓴다. 늘 켜 둔 마이크는 쓰지 않는다. -->
+    <uses-permission android:name="pleos.car.permission.STT_SERVICE" />
+    <!-- Pleos TextToSpeech: 세운 뒤 차의 한마디를 기기 안(ON_DEVICE)에서 소리로 읽는다. -->
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+
+    <!-- Android Automotive 표준 속성: 기어(GEAR_SELECTION) -->
+    <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
+    <!-- 차량 속도: 급가속·급감속 횟수만 센다. 속도 값은 저장하지 않는다. 사용자가 허용해야 한다. -->
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
+
+    <!-- 화면을 닫아도 기록을 이어 가기 위한 포그라운드 서비스, 시동 뒤 자동 시작 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+
+    <!-- Gleo 음성 호출은 쓰지 않는다(참가팀은 Gleo Interface 승인 신청 불가, 2026-11-12 차툰 정리). -->
+    <application
+        android:name=".ChatoonApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+        <!-- CCP(로터리 조작기) 미지원 선언. 사용자 설치 앱은 미지원이 허용되며, 모든 필수 조작은 터치로 끝난다
+             (Pleos 개발 가이드 "CCP Rotary Controller 개발"). 최상위 화면의 Back(CCP 하드키 포함)은 앱을 숨긴다(MainActivity). -->
+        <meta-data
+            android:name="com.hmg.rotary.ROTARY_SUPPORTED"
+            android:value="false" />
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|density|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".service.RecordingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Records on-device driving-habit events (gear, wiper, door lock, turn signal) while the user has consented. No location." />
+        </service>
+
+
+        <receiver
+            android:name=".service.StartupReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

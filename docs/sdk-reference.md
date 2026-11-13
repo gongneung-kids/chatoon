@@ -1,0 +1,1696 @@
+# Pleos SDK 기능 사전
+
+공개 Maven(`nexus-playground.pleos.ai`) SDK 소스·바이너리에서 자동 추출. 수집 2026-10-30. 사용 중단(Deprecated) 함수는 뺐다. 버전: Vehicle 2.3.2, NaviHelper 3.0.5, FusedLocation 1.1.3, TextToSpeech 3.3.1, SpeechToText 3.3.1, LLM 2.1.3.2.
+
+> Playground 신청 상태(2026-10-30): Vehicle State·NaviHelper 사용 가능 / Vehicle Control·FusedLocation·TTS·STT Coming Soon. 에뮬레이터에서는 Vehicle 제어 권한이 normal 등급이라 동작함(창문 제어 확인).
+
+## 한눈에 보기: Vehicle 도메인별 읽기·제어
+
+| 도메인 | 읽기(get) | 제어(set) 가능한 것 |
+| --- | --- | --- |
+| **Brake** | BrakePedalStatus | 읽기 전용 |
+| **CarInfo** | CRNInfo, CapabilityInfo, VINInfo | 읽기 전용 |
+| **Display** | TemperatureDisplayUnit | 읽기 전용 |
+| **Door** | DoorLockState, DoorPosition, GloveBoxLockState | DoorLock, DoorPosition, GloveBoxLock |
+| **DrivingMode** | CruiseControlState, CruiseControlTargetSpeed, DrivingModeState | 읽기 전용 |
+| **EvBattery** | CumulativeEvEfficiency, EvBatteryCapacity, EvBatteryLevel, EvBatteryStateOfCharge, EvChargeCurrentDrawLimit, EvChargeSwitchState, EvEfficiency, InstantaneousEvEfficiency, SinceChargeEvEfficiency | EvChargeCurrentDrawLimit, EvChargePercentLimit, EvChargePortOpen, EvChargeSwitch |
+| **Fuel** | CumulativeFuelEconomy, FuelEconomy, FuelPercent, InstantaneousFuelEconomy, SinceChargeFuelEconomy | 읽기 전용 |
+| **Gear** | GearSelectionState | 읽기 전용 |
+| **HVAC** | HvacAcState, HvacAirCleanerState, HvacAutoRecirculationState, HvacAutoState, HvacDefrosterState, HvacDualState, HvacFanDirection, HvacFanSpeed, HvacMaxAcState, HvacMaxDefrostState, HvacPowerState, HvacRecirculationState, HvacTemperature, HvacTemperatureCurrent, HvacTemperatureValueSuggestion | HvacAc, HvacAirCleaner, HvacAuto, HvacAutoRecirculation, HvacDefroster, HvacDual, HvacFanDirection, HvacFanSpeed, HvacMaxAc, HvacMaxDefrost, HvacPower, HvacRecirculation, HvacTemperature |
+| **Light** | AmbientColorAutoByDriveModeEnabled, AmbientLightBrightness, AmbientLightBrightnessColor, AmbientLightState, AmbientLightSwitch, CabinLightState, CabinLightSwitch, FrontFogLightState, FrontFogLightSwitch, HighBeamLightState, HighBeamLightSwitch, LowBeamLightState, LowBeamLightSwitch, ReadingLightState, ReadingLightSwitch, RearFogLightState, RearFogLightSwitch, TailLampLightState, TailLampLightSwitch | AmbientColorAutoByDriveModeEnabled, AmbientLightBrightness, AmbientLightBrightnessColor, AmbientLightSwitch, CabinLightSwitch, FrontFogLightSwitch, HighBeamLightSwitch, LowBeamLightSwitch, ReadingLightSwitch, RearFogLightSwitch, TailLampLightSwitch |
+| **Odometer** | DistanceDriven, RangeRemainingDistance, TripCumulativeDrivingDistance, TripCumulativeDrivingTime, TripCurrentDrivingDistance, TripCurrentDrivingTime, TripSinceRefillDrivingDistance, TripSinceRefillDrivingTime | RangeRemainingDistance |
+| **Safety** | BrakeFluidLevelState, EngineOilLevelState, TelltalesInfo, TransmissionOilLevelState | 읽기 전용 |
+| **Seat** | HvacSeatTemperature, HvacSeatVentilationState, SeatBackrestAnglePosition, SeatBeltBuckledState, SeatBeltHeightPosition, SeatDepthPosition, SeatForeAftPosition, SeatHeadrestAnglePosition, SeatHeadrestForeAftPosition, SeatHeadrestHeightAftPosition, SeatHeightPosition, SeatLumbarForeAftPosition, SeatLumbarSideSupportPosition, SeatOccupancy, SeatTiltPosition | HvacSeatTemperature, HvacSeatVentilation, SeatBackrestAngle, SeatBeltHeight, SeatDepth, SeatForeAft, SeatHeadrestAngle, SeatHeadrestForeAft, SeatHeadrestHeight, SeatHeight, SeatLumbarForeAft, SeatLumbarSideSupport, SeatTilt |
+| **SideMirror** | HvacSideMirrorHeatState | HvacSideMirrorHeat |
+| **SteeringWheel** | HvacSteeringWheelHeatState, SteeringWheelAngle | HvacSteeringWheelHeat |
+| **Tire** | LowTirePressure, TirePressure | 읽기 전용 |
+| **Toll** | EtcsVoiceGuidanceVolume | EtcsVoiceGuidanceVolume |
+| **TurnSignal** | TurnSignalState | 읽기 전용 |
+| **Window** | SmartGlassConfig, SmartGlassLevel, SmartGlassState, WindowBlindPosition, WindowLockState, WindowPosition | SmartGlassLevel, SmartGlassState, SmartGlassZoneState, WindowBlind, WindowLock, WindowPosition |
+| **Wiper** | WiperState, WiperSwitch | WiperSwitch |
+
+## Vehicle
+
+### `vehicle/api`
+
+- **Brake**
+  - `checkBrakePedalStatusCapabilities(onComplete, onFailed)` — Gets the brake pedal status capabilities. [권한 CAR_DRIVE]
+  - `getCurrentBrakePedalStatus(onComplete, onFailed)` — Gets the brake pedal status. If true, the brake pedal is being pressed. [권한 CAR_DRIVE]
+  - `registerBrakePedalStatus(listener)` — Registers a listener for brake pedal status property updates. [권한 CAR_DRIVE]
+  - `unregisterBrakePedalStatus(listener)` — Unregisters the listener so brake pedal status property updates stop. [권한 CAR_DRIVE]
+- **CarInfo**
+  - `checkCRNInfoCapabilities(onComplete, onFailed)` —  [권한 CAR_INFO]
+  - `checkVINInfoCapabilities(onComplete, onFailed)` — Gets VIN info capabilities. [권한 CAR_INFO]
+  - `getVINInfo(onComplete, onFailed)` — Gets the Vehicle Identification Number (VIN). [권한 CAR_INFO]
+  - `getCRNInfo(onComplete, onFailed)` —  [권한 CAR_INFO]
+  - `getCapabilityInfo(onComplete, onFailed)` —  [권한 PRIVATE_CAR_INFO]
+- **Display**
+  - `checkTemperatureDisplayUnitCapabilities(onComplete, onFailed)` — Gets temperature display unit capabilities. [권한 CAR_INFO]
+  - `getCurrentTemperatureDisplayUnit(onComplete, onFailed)` — Gets current temperature units for display. [권한 CAR_INFO]
+  - `registerTemperatureDisplayUnit(listener)` — Registers TemperatureDisplayUnit to get property updates. [권한 CAR_INFO]
+  - `unregisterTemperatureDisplayUnit(listener)` — Stops getting property updates for the given TemperatureDisplayUnit. [권한 CAR_INFO]
+- **Door**
+  - `checkGloveBoxLockCapabilities(onComplete, onFailed)` — Gets the glove box lock capabilities. [권한 CAR_DOORS]
+  - `checkDoorLockCapabilities(onComplete, onFailed)` —  [권한 CAR_DOORS]
+  - `checkDoorPositionCapabilities(onComplete, onFailed)` —  [권한 CAR_DOORS]
+  - `getDoorLockState(area, onComplete, onFailed)` — Gets current door lock state. [권한 CAR_DOORS]
+  - `setGloveBoxLock(value, onComplete, onFailed)` — Sets the current glove lock state. [권한 CONTROL_CAR_DOORS]
+  - `getCurrentGloveBoxLockState(onComplete, onFailed)` — Gets the current glove lock state. [권한 CAR_DOORS]
+  - `getCurrentDoorPosition(area, onComplete, onFailed)` — Gets the current door position state. [권한 CAR_DOORS]
+  - `setDoorLock(area, value, onComplete, onFailed)` — Sets the current door lock state. [권한 CONTROL_CAR_DOORS]
+  - `setDoorPosition(area, value, onComplete, onFailed)` — Sets the current door position state. [권한 CONTROL_CAR_DOORS]
+  - `registerDoorPosition(area, listener)` — Registers the door area to get property updates. [권한 CAR_DOORS]
+  - `unregisterDoorPosition(area, listener)` — Stops getting property updates for the given door area. [권한 CAR_DOORS]
+  - `registerDoorLockState(area, listener)` — Registers the door lock state to get property updates. [권한 CAR_DOORS]
+  - `unregisterDoorLockState(area, listener)` — Stops getting property updates for the given door lock state. [권한 CAR_DOORS]
+  - `registerGloveBoxLockState(listener)` — Registers the glove box lock state to get property updates. [권한 CAR_DOORS]
+  - `unregisterGloveBoxLockState(listener)` — Stops getting property updates for the given glove box lock state. [권한 CAR_DOORS]
+- **DrivingMode**
+  - `checkCruiseControlTargetSpeedCapabilities(onComplete, onFailed)` — Gets CruiseControlTargetSpeed capabilities. [권한 CAR_DRIVE]
+  - `checkCruiseControlStateCapabilities(onComplete, onFailed)` — Gets CruiseControlState capabilities. [권한 CAR_DRIVE]
+  - `checkDrivingModeStateCapabilities(onComplete, onFailed)` — Gets DrivingModeState capabilities. [권한 CAR_DRIVE]
+  - `getCruiseControlTargetSpeed(onComplete, onFailed)` — Gets the current cruise control target speed in meters per second (m/s). [권한 CAR_DRIVE]
+  - `getCruiseControlState(onComplete, onFailed)` — Gets the current cruise control state. [권한 CAR_DRIVE]
+  - `getCurrentDrivingModeState(onComplete, onFailed)` — Gets current driving mode state. [권한 CAR_DRIVE]
+  - `registerCruiseControlTargetSpeed(listener)` — Registers a listener for cruise control target speed updates in meters per second (m/s). [권한 CAR_DRIVE]
+  - `unregisterCruiseControlTargetSpeed(listener)` — Stops getting property updates for the given CruiseControlTargetSpeed. [권한 CAR_DRIVE]
+  - `registerCruiseControlState(listener)` — Registers CruiseControlState to get property updates. [권한 CAR_DRIVE]
+  - `unregisterCruiseControlState(listener)` — Stops getting property updates for the given CruiseControlState. [권한 CAR_DRIVE]
+  - `registerDrivingModeState(listener)` — Registers DrivingModeState to get property updates. [권한 CAR_DRIVE]
+  - `unregisterDrivingModeState(listener)` — Stops getting property updates for the given DrivingModeState. [권한 CAR_DRIVE]
+- **EvBattery**
+  - `checkInstantaneousEvEfficiencyCapabilities(onComplete, onFailed)` — Gets Instantaneous EV Efficiency capabilities. [권한 CAR_ENERGY]
+  - `checkSinceChargeEvEfficiencyCapabilities(onComplete, onFailed)` — Gets EV Efficiency Since Charge capabilities. [권한 CAR_ENERGY]
+  - `checkCumulativeEvEfficiencyCapabilities(onComplete, onFailed)` — Gets Cumulative EV Efficiency capabilities. [권한 CAR_ENERGY]
+  - `checkCurrentEvEfficiencyCapabilities(onComplete, onFailed)` — Gets Current EV Efficiency capabilities. [권한 CAR_ENERGY]
+  - `checkEvBatteryStateOfChargeCapabilities(onComplete, onFailed)` — Gets EV Battery State Of Charge capabilities. [권한 CAR_ENERGY]
+  - `checkEvChargeCurrentDrawLimitCapabilities(onComplete, onFailed)` —  [권한 CAR_ENERGY]
+  - `checkEvChargePercentLimitCapabilities(onComplete, onFailed)` — Gets capabilities for EV charge limits, each expressed as a percentage (%). [권한 CAR_ENERGY]
+  - `checkEvChargePortOpenCapabilities(onComplete, onFailed)` — Gets EvChargePortOpen capabilities. [권한 CAR_ENERGY]
+  - `checkEvChargeSwitchCapabilities(onComplete, onFailed)` — Gets EvChargeSwitch capabilities. [권한 CAR_ENERGY]
+  - `getInstantaneousEvEfficiency(onComplete, onFailed)` — Gets instantaneous EV efficiency. [권한 CAR_ENERGY]
+  - `getSinceChargeEvEfficiency(onComplete, onFailed)` — Gets EV efficiency since charge. [권한 CAR_ENERGY]
+  - `getCumulativeEvEfficiency(onComplete, onFailed)` — Gets cumulative EV efficiency. [권한 CAR_ENERGY]
+  - `getCurrentEvEfficiency(onComplete, onFailed)` — Gets current EV efficiency. [권한 CAR_ENERGY]
+  - `getEvBatteryStateOfCharge(onComplete, onFailed)` — Gets EV battery state of charge as a percentage (%). [권한 CAR_ENERGY]
+  - `getEvBatteryLevel(onComplete, onFailed)` —  [권한 CAR_ENERGY]
+  - `registerCurrentEvEfficiency(listener)` — Registers Current EV Efficiency listener. [권한 CAR_ENERGY]
+  - `unregisterCurrentEvEfficiency(listener)` — Unregisters Current EV Efficiency listener. [권한 CAR_ENERGY]
+  - `registerEvBatteryStateOfCharge(listener)` — Registers a listener for EV battery state of charge updates expressed as a percentage (%). [권한 CAR_ENERGY]
+  - `unregisterEvBatteryStateOfCharge(listener)` — Unregisters EV Battery State Of Charge listener. [권한 CAR_ENERGY]
+  - `setEvChargeCurrentDrawLimit(value, onComplete, onFailed)` — Sets the EV charge current draw limit in amperes (A). [권한 CONTROL_CAR_ENERGY]
+  - `getEvChargeCurrentDrawLimit(onComplete, onFailed)` — Gets the EV charge current draw limit in amperes (A). [권한 CAR_ENERGY]
+  - `setEvChargePercentLimit(value, onComplete, onFailed)` — Sets the battery state-of-charge limit for EV charging, expressed as a percentage (%). [권한 CONTROL_CAR_ENERGY]
+  - `isEvChargePortOpen(onComplete, onFailed)` —  [권한 CAR_ENERGY]
+  - `setEvChargePortOpen(value, onComplete, onFailed)` — Sets the EV charge port open state to On or Off. [권한 CONTROL_CAR_ENERGY]
+  - `setEvChargeSwitch(value, onComplete, onFailed)` — Sets whether to start or stop EV battery charging. [권한 CONTROL_CAR_ENERGY]
+  - `getEvChargeSwitchState(onComplete, onFailed)` — Gets the current EV battery charging state. [권한 CAR_ENERGY]
+  - `getEvBatteryCapacity(onComplete, onFailed)` —  [권한 CAR_INFO]
+  - `registerInstantaneousEvEfficiency(listener)` — Registers Instantaneous EV Efficiency listener. [권한 CAR_ENERGY]
+  - `unregisterInstantaneousEvEfficiency(listener)` — Unregisters Instantaneous EV Efficiency listener. [권한 CAR_ENERGY]
+  - `registerSinceChargeEvEfficiency(listener)` — Registers EV Efficiency Since Charge listener. [권한 CAR_ENERGY]
+  - `unregisterSinceChargeEvEfficiency(listener)` — Unregisters EV Efficiency Since Charge listener. [권한 CAR_ENERGY]
+  - `registerCumulativeEvEfficiency(listener)` — Registers Cumulative EV Efficiency listener. [권한 CAR_ENERGY]
+  - `unregisterCumulativeEvEfficiency(listener)` — Unregisters Cumulative EV Efficiency listener. [권한 CAR_ENERGY]
+  - `registerEvBatteryLevel(listener)` —  [권한 CAR_ENERGY]
+  - `unregisterEvBatteryLevel(listener)` —  [권한 CAR_ENERGY]
+  - `registerEvChargePortOpen(listener)` —  [권한 CAR_ENERGY]
+  - `unregisterEvChargePortOpen(listener)` —  [권한 CAR_ENERGY]
+- **Fuel**
+  - `checkInstantaneousFuelEconomyCapabilities(onComplete, onFailed)` — Gets Instantaneous Fuel Economy capabilities. [권한 CAR_ENERGY]
+  - `checkSinceChargeFuelEconomyCapabilities(onComplete, onFailed)` — Gets Fuel Economy Since Refuel capabilities. [권한 CAR_ENERGY]
+  - `checkCumulativeFuelEconomyCapabilities(onComplete, onFailed)` — Gets Cumulative Fuel Economy capabilities. [권한 CAR_ENERGY]
+  - `checkCurrentFuelEconomyCapabilities(onComplete, onFailed)` — Gets Current Fuel Economy capabilities. [권한 CAR_ENERGY]
+  - `checkFuelPercentCapabilities(onComplete, onFailed)` — Gets Fuel Percent capabilities. [권한 CAR_ENERGY]
+  - `getInstantaneousFuelEconomy(onComplete, onFailed)` — Gets instantaneous fuel economy. [권한 CAR_ENERGY]
+  - `getSinceChargeFuelEconomy(onComplete, onFailed)` — Gets fuel economy since refuel. [권한 CAR_ENERGY]
+  - `getCumulativeFuelEconomy(onComplete, onFailed)` — Gets cumulative fuel economy. [권한 CAR_ENERGY]
+  - `getCurrentFuelEconomy(onComplete, onFailed)` — Gets current fuel economy. [권한 CAR_ENERGY]
+  - `getFuelPercent(onComplete, onFailed)` — Gets the fuel level as a percentage (%). [권한 CAR_ENERGY]
+  - `registerInstantaneousFuelEconomy(listener)` — Registers Instantaneous Fuel Economy listener. [권한 CAR_ENERGY]
+  - `unregisterInstantaneousFuelEconomy(listener)` — Unregisters Instantaneous Fuel Economy listener. [권한 CAR_ENERGY]
+  - `registerSinceChargeFuelEconomy(listener)` — Registers Fuel Economy Since Refuel listener. [권한 CAR_ENERGY]
+  - `unregisterSinceChargeFuelEconomy(listener)` — Unregisters Fuel Economy Since Refuel listener. [권한 CAR_ENERGY]
+  - `registerCumulativeFuelEconomy(listener)` — Registers Cumulative Fuel Economy listener. [권한 CAR_ENERGY]
+  - `unregisterCumulativeFuelEconomy(listener)` — Unregisters Cumulative Fuel Economy listener. [권한 CAR_ENERGY]
+  - `registerCurrentFuelEconomy(listener)` — Registers Current Fuel Economy listener. [권한 CAR_ENERGY]
+  - `unregisterCurrentFuelEconomy(listener)` — Unregisters Current Fuel Economy listener. [권한 CAR_ENERGY]
+  - `registerFuelPercent(listener)` — Registers a listener for fuel level updates expressed as a percentage (%). [권한 CAR_ENERGY]
+  - `unregisterFuelPercent(listener)` — Unregisters Fuel Percent listener. [권한 CAR_ENERGY]
+- **Gear**
+  - `getCurrentGearSelectionState(onComplete, onFailed)` —  [권한 CAR_DRIVE]
+  - `registerGearSelection(listener)` —  [권한 CAR_DRIVE]
+  - `unregisterGearSelection(listener)` —  [권한 CAR_DRIVE]
+- **HVAC**
+  - `checkHvacAcCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacAutoCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacRecirculationCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacDefrosterCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacDualCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacFanDirectionCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacFanSpeedCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacMaxAcCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacMaxDefrostCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacPowerCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacAutoRecirculationCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacAirCleanerCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacTemperatureCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkHvacTemperatureCurrentCapabilities(onComplete, onFailed)` — Gets HVAC temperature current capabilities. [권한 CAR_CLIMATE]
+  - `checkHvacTemperatureValueSuggestionCapabilities(onComplete, onFailed)`
+  - `setHvacAc(area, value, onComplete, onFailed)` — Sets AC to On/Off for the designated areaId. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacAcState(area, onComplete, onFailed)` — Gets the current AC state. [권한 CAR_CLIMATE]
+  - `setHvacAuto(area, value, onComplete, onFailed)` — Sets automatic mode to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacAutoState(area, onComplete, onFailed)` — Gets the current automatic mode. [권한 CAR_CLIMATE]
+  - `setHvacAutoRecirculation(area, value, onComplete, onFailed)` — Sets the automatic recirculation to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacAutoRecirculationState(area, onComplete, onFailed)` — Gets the current automatic recirculation. [권한 CAR_CLIMATE]
+  - `setHvacDefroster(area, value, onComplete, onFailed)` — Sets the defroster to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacDefrosterState(area, onComplete, onFailed)` — Gets the current defroster state. [권한 CAR_CLIMATE]
+  - `setHvacDual(area, value, onComplete, onFailed)` — Enable temperature coupling between areas. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacDualState(area, onComplete, onFailed)` — Gets the current temperature coupling state between areas. [권한 CAR_CLIMATE]
+  - `setHvacFanDirection(area, value, onComplete, onFailed)` — Sets fan direction. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacFanDirection(area, onComplete, onFailed)` — Gets the current fan direction. [권한 CAR_CLIMATE]
+  - `setHvacFanSpeed(area, value, onComplete, onFailed)` — Sets the fan speed. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacFanSpeed(area, onComplete, onFailed)` — Gets the current fan speed. [권한 CAR_CLIMATE]
+  - `setHvacMaxAc(area, value, onComplete, onFailed)` — Sets the max AC to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacMaxAcState(area, onComplete, onFailed)` — Gets the current max AC state. [권한 CAR_CLIMATE]
+  - `setHvacMaxDefrost(area, value, onComplete, onFailed)` — Sets the max defrost to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacMaxDefrostState(area, onComplete, onFailed)` — Gets the current max defrost state. [권한 CAR_CLIMATE]
+  - `setHvacPower(area, value, onComplete, onFailed)` — Sets the global power state to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacPowerState(area, onComplete, onFailed)` — Gets the current global power state. [권한 CAR_CLIMATE]
+  - `setHvacRecirculation(area, value, onComplete, onFailed)` — Sets recirculation to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacRecirculationState(area, onComplete, onFailed)` — Gets the current recirculation state. [권한 CAR_CLIMATE]
+  - `setHvacAirCleaner(area, value, onComplete, onFailed)` — Sets the air cleaner to On/Off. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacAirCleanerState(area, onComplete, onFailed)` — Gets the current air cleaner state. [권한 CAR_CLIMATE]
+  - `getHvacTemperatureValueSuggestion(unit, onComplete, onFailed)`
+  - `getHvacTemperature(area, unit, onComplete, onFailed)` — Gets the target temperature in the specified `unit`. [권한 CAR_CLIMATE]
+  - `setHvacTemperature(area, value, unit, onComplete, onFailed)` — Sets the target temperature in the specified [unit]. [권한 CONTROL_CAR_CLIMATE]
+  - `getHvacTemperatureCurrent(area, onComplete, onFailed)` — Gets the current internal temperature of the vehicle in degrees Celsius (°C). [권한 CAR_CLIMATE]
+  - `getHvacTemperatureCurrent(area, unit, onComplete, onFailed)` — Gets the current internal temperature of the vehicle in the requested unit. [권한 CAR_CLIMATE]
+  - `registerHvacAcState(area, listener)` — Registers the HvacAC state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacAcState(area, listener)` — Stops getting property updates for the given HvacAC state. [권한 CAR_CLIMATE]
+  - `registerHvacAutoState(area, listener)` — Registers the HvacAuto state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacAutoState(area, listener)` — Stops getting property updates for the given HvacAuto state. [권한 CAR_CLIMATE]
+  - `registerHvacAutoRecirculationState(area, listener)` — Registers the HvacAutoRecirculation state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacAutoRecirculationState(area, listener)` — Stops getting property updates for the given HvacAutoRecirculation state. [권한 CAR_CLIMATE]
+  - `registerHvacDefrosterState(area, listener)` — Registers the HvacDefroster state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacDefrosterState(area, listener)` — Stops getting property updates for the given HvacDefroster state. [권한 CAR_CLIMATE]
+  - `registerHvacDualState(area, listener)` — Registers the HvacDual state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacDualState(area, listener)` — Stops getting property updates for the given HvacDual state. [권한 CAR_CLIMATE]
+  - `registerHvacMaxAcState(area, listener)` — Registers the HvacMaxAc state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacMaxAcState(area, listener)` — Stop getting property updates for the given HvacMaxAc state. [권한 CAR_CLIMATE]
+  - `registerHvacMaxDefrostState(area, listener)` — Registers the HvacMaxDefrost state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacMaxDefrostState(area, listener)` — Stops getting property updates for the given HvacMaxDefrost state. [권한 CAR_CLIMATE]
+  - `registerHvacPowerState(area, listener)` — Registers the HvacPower state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacPowerState(area, listener)` — Stops getting property updates for the given HvacPower state. [권한 CAR_CLIMATE]
+  - `registerHvacAirCleanerState(area, listener)` — Registers the HvacAirCleaner state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacAirCleanerState(area, listener)` — Stops getting property updates for the given HvacAirCleaner state. [권한 CAR_CLIMATE]
+  - `registerHvacTemperatureCurrent(area, listener)` — Registers a listener for current interior temperature updates in degrees Celsius (°C). [권한 CAR_CLIMATE]
+  - `unregisterHvacTemperatureCurrent(area, listener)` — Stops getting property updates for the given HvacTemperatureCurrent. [권한 CAR_CLIMATE]
+  - `registerHvacTemperature(area, listener)` — Registers a listener for target temperature updates in degrees Celsius (°C) only. [권한 CAR_CLIMATE]
+  - `unregisterHvacTemperature(area, listener)` — Stops getting property updates for the given HvacTemperature. [권한 CAR_CLIMATE]
+  - `registerHvacFanSpeed(area, listener)` — Registers the HvacFanSpeed to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacFanSpeed(area, listener)` — Stops getting property updates for the given HvacFanSpeed. [권한 CAR_CLIMATE]
+  - `registerHvacRecirculationState(area, listener)` — Registers the HvacRecirculation to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacRecirculationState(area, listener)` — Stops getting property updates for the given HvacRecirculation. [권한 CAR_CLIMATE]
+- **Light**
+  - `checkReadingLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkCabinLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkHighBeamLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkLowBeamLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkTailLampLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkFrontFogLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkRearFogLightSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_LIGHTS]
+  - `checkReadingLightStateCapabilities(onComplete, onFailed)` — Gets reading light state capabilities. [권한 CAR_LIGHTS]
+  - `checkCabinLightStateCapabilities(onComplete, onFailed)` — Gets cabin light state capabilities. [권한 CAR_LIGHTS]
+  - `checkHighBeamLightStateCapabilities(onComplete, onFailed)` — Gets high beam light state capabilities. [권한 CAR_LIGHTS]
+  - `checkLowBeamLightStateCapabilities(onComplete, onFailed)` — Gets low beam light state capabilities. [권한 CAR_LIGHTS]
+  - `checkTailLampLightStateCapabilities(onComplete, onFailed)` — Gets tail lamp light state capabilities. [권한 CAR_LIGHTS]
+  - `checkFrontFogLightStateCapabilities(onComplete, onFailed)` — Gets front fog light state capabilities. [권한 CAR_LIGHTS]
+  - `checkRearFogLightStateCapabilities(onComplete, onFailed)` — Gets rear fog light state capabilities. [권한 CAR_LIGHTS]
+  - `checkAmbientLightBrightnessCapabilities(onComplete, onFailed)` — Gets ambient light brightness capabilities. [권한 CAR_LIGHTS]
+  - `checkAmbientLightBrightnessColorCapabilities(onComplete, onFailed)` — Gets ambient light brightness color capabilities. [권한 CAR_LIGHTS]
+  - `checkAmbientLightSwitchCapabilities(onComplete, onFailed)` — Gets ambient light switch capabilities. [권한 CAR_LIGHTS]
+  - `checkAmbientLightStateCapabilities(onComplete, onFailed)` — Gets ambient light state capabilities. [권한 CAR_LIGHTS]
+  - `checkAmbientColorAutoByDriveModeEnabledCapabilities(onComplete, onFailed)` — Gets Ambient Color Auto By Drive Mode Enabled capabilities. [권한 CAR_LIGHTS]
+  - `getReadingLightSwitch(area, onComplete, onFailed)` — Gets the current reading light switch. [권한 CAR_LIGHTS]
+  - `setReadingLightSwitch(area, value, onComplete, onFailed)` — Sets the reading light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getCurrentReadingLightState(area, onComplete, onFailed)` — Gets the current reading light state. [권한 CAR_LIGHTS]
+  - `getCabinLightSwitch(onComplete, onFailed)` — Gets the current cabin light switch. [권한 CAR_LIGHTS]
+  - `setCabinLightSwitch(value, onComplete, onFailed)` — Sets the cabin light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getCurrentCabinLightState(onComplete, onFailed)` — Gets the current cabin light state. [권한 CAR_LIGHTS]
+  - `getCurrentHighBeamLightState(onComplete, onFailed)` — Gets the current high beam light state. [권한 CAR_LIGHTS]
+  - `getHighBeamLightSwitch(onComplete, onFailed)` — Gets the current high beam light switch. [권한 CAR_LIGHTS]
+  - `setHighBeamLightSwitch(value, onComplete, onFailed)` — Sets the high beam light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `setLowBeamLightSwitch(value, onComplete, onFailed)` — Sets the low beam light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getLowBeamLightSwitch(onComplete, onFailed)` — Gets the current low beam light switch. [권한 CAR_LIGHTS]
+  - `getCurrentLowBeamLightState(onComplete, onFailed)` — Gets the current low beam light state. [권한 CAR_LIGHTS]
+  - `getCurrentTailLampLightState(onComplete, onFailed)` — Gets the current tail lamp light state. [권한 CAR_LIGHTS]
+  - `getTailLampLightSwitch(onComplete, onFailed)` — Gets the current tail lamp light switch. [권한 CAR_LIGHTS]
+  - `setTailLampLightSwitch(value, onComplete, onFailed)` — Sets the tail lamp light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getCurrentFrontFogLightState(onComplete, onFailed)` — Gets the current front fog light state. [권한 CAR_LIGHTS]
+  - `getFrontFogLightSwitch(onComplete, onFailed)` — Gets the current front fog light switch. [권한 CAR_LIGHTS]
+  - `setFrontFogLightSwitch(value, onComplete, onFailed)` — Sets the front fog light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getCurrentRearFogLightState(onComplete, onFailed)` — Gets the current rear fog light state. [권한 CAR_LIGHTS]
+  - `getRearFogLightSwitch(onComplete, onFailed)` — Gets the current rear fog light switch. [권한 CAR_LIGHTS]
+  - `setRearFogLightSwitch(value, onComplete, onFailed)` — Sets the rear fog light switch. [권한 CONTROL_CAR_LIGHTS]
+  - `getAmbientLightBrightness(area, onComplete, onFailed)` — Gets the current Ambient Light Brightness for the specified seat area. [권한 CAR_LIGHTS]
+  - `setAmbientLightBrightness(area, value, onComplete, onFailed)` — Sets the Ambient Light Brightness for the specified seat area. [권한 CAR_LIGHTS]
+  - `getAmbientLightBrightnessColor(area, onComplete, onFailed)` — Gets the current Ambient Light Brightness Color (32-bit ARGB) for the specified seat area. [권한 CAR_LIGHTS]
+  - `setAmbientLightBrightnessColor(area, value, onComplete, onFailed)` — Sets the Ambient Light Brightness Color for the specified seat area. [권한 CAR_LIGHTS]
+  - `getAmbientLightSwitch(area, onComplete, onFailed)` — Gets the current Ambient Light Switch for the specified seat area. [권한 CAR_LIGHTS]
+  - `setAmbientLightSwitch(area, value, onComplete, onFailed)` — Sets the Ambient Light Switch for the specified seat area. [권한 CAR_LIGHTS]
+  - `getAmbientLightState(area, onComplete, onFailed)` — Gets the current Ambient Light State for the specified seat area. [권한 CAR_LIGHTS]
+  - `getAmbientColorAutoByDriveModeEnabled(onComplete, onFailed)` — Gets whether Ambient Color Auto By Drive Mode is enabled. [권한 CAR_LIGHTS]
+  - `setAmbientColorAutoByDriveModeEnabled(value, onComplete, onFailed)` — Sets whether Ambient Color Auto By Drive Mode is enabled. [권한 CONTROL_CAR_LIGHTS]
+  - `registerHighBeamLightState(listener)` — Registers the HighBeamLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterHighBeamLightState(listener)` — Stops getting property updates for the given HighBeamLightState. [권한 CAR_LIGHTS]
+  - `registerLowBeamLightState(listener)` — Registers the LowBeamLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterLowBeamLightState(listener)` — Stops getting property updates for the given LowBeamLightState. [권한 CAR_LIGHTS]
+  - `registerTailLampLightState(listener)` — Registers the TailLampLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterTailLampLightState(listener)` — Stops getting property updates for the given TailLampLightState. [권한 CAR_LIGHTS]
+  - `registerFrontFogLightState(listener)` — Registers the FrontFogLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterFrontFogLightState(listener)` — Stops getting property updates for the given FrontFogLightState. [권한 CAR_LIGHTS]
+  - `registerRearFogLightState(listener)` — Registers the RearFogLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterRearFogLightState(listener)` — Stops getting property updates for the given RearFogLightState. [권한 CAR_LIGHTS]
+  - `registerReadingLightState(area, listener)` — Registers the ReadingLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterReadingLightState(area, listener)` — Stops getting property updates for the given ReadingLightState. [권한 CAR_LIGHTS]
+  - `registerCabinLightState(listener)` — Registers the CabinLightState to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterCabinLightState(listener)` — Stops getting property updates for the given CabinLightState. [권한 CAR_LIGHTS]
+  - `registerAmbientLightBrightnessListener(area, listener)` — Registers a listener to receive Ambient Light Brightness updates for the specified seat area. [권한 CAR_LIGHTS]
+  - `unregisterAmbientLightBrightnessListener(area, listener)` — Unregisters a previously registered Ambient Light Brightness listener for the specified seat area. [권한 CAR_LIGHTS]
+  - `registerAmbientLightBrightnessColorListener(area, listener)` — Registers a listener to receive Ambient Light Brightness Color updates for the specified seat area. [권한 CAR_LIGHTS]
+  - `unregisterAmbientLightBrightnessColorListener(area, listener)` — Unregisters a previously registered Ambient Light Brightness Color listener for the specified seat area. [권한 CAR_LIGHTS]
+  - `registerAmbientLightStateListener(area, listener)` — Registers a listener to receive Ambient Light State updates for the specified seat area. [권한 CAR_LIGHTS]
+  - `unregisterAmbientLightStateListener(area, listener)` — Unregisters a previously registered Ambient Light State listener for the specified seat area. [권한 CAR_LIGHTS]
+  - `registerAmbientColorAutoByDriveModeEnabled(listener)` — Registers a listener to receive Ambient Color Auto By Drive Mode Enabled updates. [권한 CAR_LIGHTS]
+  - `unregisterAmbientColorAutoByDriveModeEnabled(listener)` — Unregisters a previously registered Ambient Color Auto By Drive Mode Enabled listener. [권한 CAR_LIGHTS]
+- **Odometer**
+  - `checkCurrentDistanceDrivenCapabilities(onComplete, onFailed)` — Gets current distance driven capabilities. [권한 CAR_DRIVE]
+  - `getCurrentDistanceDriven(onComplete, onFailed)` — Current odometer value of the vehicle in kilometers (km). [권한 CAR_DRIVE]
+  - `checkTripDrivingTimeCapabilities(onComplete, onFailed)` — Gets Trip Driving Time capabilities. [권한 CAR_DRIVE]
+  - `checkTripCurrentDrivingTimeCapabilities(onComplete, onFailed)` — Gets Trip Current Driving Time capabilities. [권한 CAR_DRIVE]
+  - `checkTripCumulativeDrivingTimeCapabilities(onComplete, onFailed)` — Gets Trip Cumulative Driving Time capabilities. [권한 CAR_DRIVE]
+  - `checkTripSinceRefillDrivingTimeCapabilities(onComplete, onFailed)` — Gets Trip Since Refuel Driving Time capabilities. [권한 CAR_DRIVE]
+  - `getTripCurrentDrivingTime(onComplete, onFailed)` — Gets trip current driving time. [권한 CAR_DRIVE]
+  - `getTripCumulativeDrivingTime(onComplete, onFailed)` — Gets trip cumulative driving time. [권한 CAR_DRIVE]
+  - `getTripSinceRefillDrivingTime(onComplete, onFailed)` — Gets trip since refuel driving time. [권한 CAR_DRIVE]
+  - `checkTripDrivingDistanceCapabilities(onComplete, onFailed)` — Gets Trip Driving Distance capabilities. [권한 CAR_DRIVE]
+  - `checkTripCurrentDrivingDistanceCapabilities(onComplete, onFailed)` — Gets Trip Current Driving Distance capabilities. [권한 CAR_DRIVE]
+  - `checkTripCumulativeDrivingDistanceCapabilities(onComplete, onFailed)` — Gets Trip Cumulative Driving Distance capabilities. [권한 CAR_DRIVE]
+  - `checkTripSinceRefillDrivingDistanceCapabilities(onComplete, onFailed)` — Gets Trip Since Refuel Driving Distance capabilities. [권한 CAR_DRIVE]
+  - `getTripCurrentDrivingDistance(onComplete, onFailed)` — Gets trip current driving distance in meters (m). [권한 CAR_DRIVE]
+  - `getTripCumulativeDrivingDistance(onComplete, onFailed)` — Gets trip cumulative driving distance in meters (m). [권한 CAR_DRIVE]
+  - `getTripSinceRefillDrivingDistance(onComplete, onFailed)` — Gets trip since refuel driving distance in meters (m). [권한 CAR_DRIVE]
+  - `setRangeRemainingDistance(value, onComplete, onFailed)` —  [권한 CONTROL_CAR_DRIVE]
+  - `getRangeRemainingDistance(onComplete, onFailed)` —  [권한 CAR_DRIVE]
+  - `registerRangeRemainingListener(listener)` —  [권한 CAR_DRIVE]
+  - `unregisterRangeRemainingListener(listener)` —  [권한 CAR_DRIVE]
+  - `registerDistanceDriven(listener)` — Registers a listener for odometer updates in kilometers (km). [권한 CAR_DRIVE]
+  - `unregisterDistanceDriven(listener)` — Stops getting property updates for the given DistanceDriven. [권한 CAR_DRIVE]
+  - `registerTripCurrentDrivingTime(listener)` — Registers Trip Current Driving Time listener. [권한 CAR_DRIVE]
+  - `unregisterTripCurrentDrivingTime(listener)` — Unregisters Trip Current Driving Time listener. [권한 CAR_DRIVE]
+  - `registerTripCumulativeDrivingTime(listener)` — Registers Trip Cumulative Driving Time listener. [권한 CAR_DRIVE]
+  - `unregisterTripCumulativeDrivingTime(listener)` — Unregisters Trip Cumulative Driving Time listener. [권한 CAR_DRIVE]
+  - `registerTripSinceRefillDrivingTime(listener)` — Registers Trip Since Refuel Driving Time listener. [권한 CAR_DRIVE]
+  - `unregisterTripSinceRefillDrivingTime(listener)` — Unregisters Trip Since Refuel Driving Time listener. [권한 CAR_DRIVE]
+  - `registerTripCurrentDrivingDistance(listener)` — Registers a listener for trip current driving distance updates in meters (m). [권한 CAR_DRIVE]
+  - `unregisterTripCurrentDrivingDistance(listener)` — Unregisters Trip Current Driving Distance listener. [권한 CAR_DRIVE]
+  - `registerTripCumulativeDrivingDistance(listener)` — Registers a listener for trip cumulative driving distance updates in meters (m). [권한 CAR_DRIVE]
+  - `unregisterTripCumulativeDrivingDistance(listener)` — Unregisters Trip Cumulative Driving Distance listener. [권한 CAR_DRIVE]
+  - `registerTripSinceRefillDrivingDistance(listener)` — Registers a listener for trip since refuel driving distance updates in meters (m). [권한 CAR_DRIVE]
+  - `unregisterTripSinceRefillDrivingDistance(listener)` — Unregisters Trip Since Refuel Driving Distance listener. [권한 CAR_DRIVE]
+- **Safety**
+  - `checkAirbagCapabilities(onComplete, onFailed)` —  [권한 CAR_SAFETY]
+  - `checkAirbagDeployedCapabilities(onComplete, onFailed)` — Gets airbag deployed capabilities. [권한 CAR_SAFETY]
+  - `checkSeatBuckledCapabilities(onComplete, onFailed)` —  [권한 CAR_SAFETY]
+  - `checkSeatNotBuckledWarningCapabilities(onComplete, onFailed)` — Gets seat not buckled warning capabilities. [권한 CAR_SAFETY]
+  - `checkEngineOilLevelStateCapabilities(onComplete, onFailed)` — Gets engine oil level state capabilities. [권한 CAR_SAFETY]
+  - `checkBrakeFluidLevelStateCapabilities(onComplete, onFailed)` — Gets brake fluid level state capabilities. [권한 CAR_SAFETY]
+  - `checkTransmissionOilLevelStateCapabilities(onComplete, onFailed)` — Gets transmission oil level state capabilities. [권한 CAR_SAFETY]
+  - `checkLowWasherFluidWarningStateCapabilities(onComplete, onFailed)` — Gets low washer fluid warning state capabilities. [권한 CAR_SAFETY]
+  - `checkPowerDownWarningIndicatorCapabilities(onComplete, onFailed)` — Gets power down warning indicator capabilities. [권한 CAR_SAFETY]
+  - `checkTelltalesCapabilities(onComplete, onFailed)` — Gets telltales capabilities. [권한 PRIVATE_CAR_SAFETY]
+  - `getEngineOilLevelState(onComplete, onFailed)` — Gets the current engine oil level. [권한 CAR_SAFETY]
+  - `getBrakeFluidLevelState(onComplete, onFailed)` — Gets the current brake fluid level. [권한 CAR_SAFETY]
+  - `getTransmissionOilLevelState(onComplete, onFailed)` — Gets the current transmission oil level. [권한 CAR_SAFETY]
+  - `hasLowWasherFluidWarning(onComplete, onFailed)` — Checks the current washer fluid low warning status. [권한 CAR_SAFETY]
+  - `hasSeatAirbagBeenDeployed(area, onComplete, onFailed)` — Gets the current airbag deployment status. [권한 CAR_SAFETY]
+  - `hasPowerDownWarningIndicator(onComplete, onFailed)` — Gets the current power down warning indicator state. If the state is true, there is a problem with the engine. [권한 CAR_SAFETY]
+  - `hasSeatAirbagEnabled(area, onComplete, onFailed)` — Gets the seat airbag enabled state. If the state is true, there is a problem with the seat airbag in the [area [권한 CAR_SAFETY]
+  - `hasSeatBeltNotBuckledWarning(area, onComplete, onFailed)` — Gets the seat belt buckled warning state. If the state is true, the seat belt in the [area] is not buckled. [권한 CAR_SAFETY]
+  - `getTelltalesInfo(onComplete, onFailed)` — Gets telltales info. [권한 CAR_SAFETY]
+  - `registerPowerDownWarningIndicator(listener)` — Registers the PowerDownWarningIndicator to get property updates. [권한 CAR_SAFETY]
+  - `unregisterPowerDownWarningIndicator(listener)` — Stops getting property updates for the given PowerDownWarningIndicator. [권한 CAR_SAFETY]
+  - `registerSeatAirbagEnabled(area, listener)` — Registers the SeatAirbagEnabled to get property updates. [권한 CAR_SAFETY]
+  - `unregisterSeatAirbagEnabled(area, listener)` — Stops getting property updates for the given SeatAirbagEnabled. [권한 CAR_SAFETY]
+  - `registerSeatBeltNotBuckledWarning(area, listener)` — Registers the SeatBeltNotBuckledWarning to get property updates. [권한 CAR_SAFETY]
+  - `unregisterSeatBeltNotBuckledWarning(area, listener)` — Stops getting property updates for the given SeatBeltNotBuckledWarning. [권한 CAR_SAFETY]
+  - `registerLowWasherFluidWaringState(listener)` — Registers the LowWasherFluidWaringState to get property updates. [권한 CAR_SAFETY]
+  - `unregisterLowWasherFluidWaringState(listener)` — Stops getting property updates for the given LowWasherFluidWaringState. [권한 CAR_SAFETY]
+  - `registerBrakeFluidLevelState(listener)` — Registers the BrakeFluidLevelState to get property updates. [권한 CAR_SAFETY]
+  - `unregisterBrakeFluidLevelState(listener)` — Stops getting property updates for the given BrakeFluidLevelState. [권한 CAR_SAFETY]
+  - `registerTransmissionOilLevelState(listener)` — Registers the TransmissionOilLevel to get property updates. [권한 CAR_SAFETY]
+  - `unregisterTransmissionOilLevelState(listener)` — Stops getting property updates for the given TransmissionOilLevel. [권한 CAR_SAFETY]
+  - `registerEngineOilLevelState(listener)` — Registers the EngineOilLevelState to get property updates. [권한 CAR_SAFETY]
+  - `unregisterEngineOilLevelState(listener)` — Stops getting property updates for the given EngineOilLevelState. [권한 CAR_SAFETY]
+  - `registerSeatAirbagDeployed(area, listener)` — Registers the SeatAirbagDeployed to get property updates. [권한 CAR_SAFETY]
+  - `unregisterSeatAirbagDeployed(area, listener)` — Stops getting property updates for the given SeatAirbagDeployed. [권한 CAR_SAFETY]
+  - `registerTelltales(listener)` — Registers a Telltales listener to receive telltale information updates. [권한 PRIVATE_CAR_SAFETY]
+  - `unregisterTelltales(listener)` — Unregisters a previously registered Telltales listener. [권한 PRIVATE_CAR_SAFETY]
+- **Seat**
+  - `checkSeatOccupancyCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatBeltBuckledCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatBackrestAngleCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatBackrestAnglePositionCapabilities(onComplete, onFailed)` — Gets seat BackrestAnglePosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatHeadrestAngleCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatHeadrestAnglePositionCapabilities(onComplete, onFailed)` — Gets seat HeadrestAnglePosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatHeadrestForeAftCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatHeadrestForeAftPositionCapabilities(onComplete, onFailed)` — Gets seat HeadrestForeAftPosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatHeadrestHeightCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatHeadrestHeightPositionCapabilities(onComplete, onFailed)` — Gets seat HeadrestHeightPosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatHeightCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatHeightPositionCapabilities(onComplete, onFailed)` — Gets seat height position capabilities. [권한 CAR_SEATS]
+  - `checkSeatLumbarForeAftCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatLumbarForeAftPositionCapabilities(onComplete, onFailed)` — Gets seat LumbarForeAftPosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatLumbarSideSupportCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatLumbarSideSupportPositionCapabilities(onComplete, onFailed)` — Gets seat LumbarSideSupportPosition capabilities. [권한 CAR_SEATS]
+  - `checkSeatTiltCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatTiltPositionCapabilities(onComplete, onFailed)` — Gets seat tilt position capabilities. [권한 CAR_SEATS]
+  - `checkSeatDepthCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatDepthPositionCapabilities(onComplete, onFailed)` — Gets seat depth position capabilities. [권한 CAR_SEATS]
+  - `checkSeatForeAftCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatForeAftPositionCapabilities(onComplete, onFailed)` — Gets seat ForeAft position capabilities. [권한 CAR_SEATS]
+  - `checkSeatBeltHeightCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatBeltHeightPositionCapabilities(onComplete, onFailed)` — Gets seat belt height position capabilities. [권한 CAR_SEATS]
+  - `checkSeatTemperatureCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkSeatVentilationCapabilities(onComplete, onFailed)` —  [권한 CAR_SEATS]
+  - `checkMoveSeatBackrestAngleCapabilities(onComplete, onFailed)` — Gets move seat BackrestAngle capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatHeadrestForeAftCapabilities(onComplete, onFailed)` — Gets move seat HeadrestForeAft capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatBeltHeightCapabilities(onComplete, onFailed)` — Gets move seat belt height capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatHeadrestHeightCapabilities(onComplete, onFailed)` — Gets move seat headrest height capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatHeightCapabilities(onComplete, onFailed)` — Gets move seat height capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatLumbarForeAftCapabilities(onComplete, onFailed)` — Gets move seat lumbar ForeAft capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatLumbarSideSupportCapabilities(onComplete, onFailed)` — Gets move seat lumbar side support capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatTiltCapabilities(onComplete, onFailed)` — Gets move seat tilt capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatDepthCapabilities(onComplete, onFailed)` — Gets move seat depth capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatHeadrestAngleCapabilities(onComplete, onFailed)` — Gets move seat headrest angle capabilities. [권한 CAR_SEATS]
+  - `checkMoveSeatForeAftCapabilities(onComplete, onFailed)` — Gets move seat ForeAft capabilities. [권한 CAR_SEATS]
+  - `checkSeatMemoryCapabilities(onComplete, onFailed)` — Gets seat memory capabilities. [권한 CAR_SEATS]
+  - `getCurrentSeatOccupancy(area, onComplete, onFailed)` — Gets current seat occupancy. [권한 CAR_SEATS]
+  - `moveSeatBackrestAngle(area, value, onComplete, onFailed)` — Move seat backrestAngle. [권한 CONTROL_CAR_SEATS]
+  - `moveSeatHeadrestForeAft(area, value, onComplete, onFailed)` — Moves seat headrest fore/aft. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatHeadrestForeAftPosition(area, onComplete, onFailed)` — Gets current seat headrest fore/aft position. [권한 CAR_SEATS]
+  - `moveSeatHeadrestHeight(area, value, onComplete, onFailed)` — Moves seat headrest height. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatHeadrestHeightAftPosition(area, onComplete, onFailed)` — Gets the current seat headrest height aft position. [권한 CAR_SEATS]
+  - `moveSeatHeight(area, value, onComplete, onFailed)` — Moves the seat height. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatHeightPosition(area, onComplete, onFailed)` — Gets the current seat height position. [권한 CAR_SEATS]
+  - `moveSeatLumbarForeAft(area, value, onComplete, onFailed)` — Moves seat lumbar fore/aft. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatLumbarForeAftPosition(area, onComplete, onFailed)` — Gets the current seat lumbar fore/aft position. [권한 CAR_SEATS]
+  - `moveSeatLumbarSideSupport(area, value, onComplete, onFailed)` — Moves the seat lumbar side support. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatLumbarSideSupportPosition(area, onComplete, onFailed)` — Gets the seat lumbar side support position. [권한 CAR_SEATS]
+  - `selectSeatMemory(area, value, onFailed)` — Selects seat memory. [권한 CONTROL_CAR_SEATS]
+  - `moveSeatTilt(area, value, onComplete, onFailed)` — Moves seat tilt. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatTiltPosition(area, onComplete, onFailed)` — Gets the current seat tilt position. [권한 CAR_SEATS]
+  - `moveSeatDepth(area, value, onComplete, onFailed)` — Moves the seat depth. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatDepthPosition(area, onComplete, onFailed)` — Gets the current seat depth position. [권한 CAR_SEATS]
+  - `getCurrentSeatForeAftPosition(area, onComplete, onFailed)` — Gets the current seat fore/aft position. [권한 CAR_SEATS]
+  - `moveSeatHeadrestAngle(area, value, onComplete, onFailed)` — Moves the seat headrest angle. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatHeadrestAnglePosition(area, onComplete, onFailed)` — Gets the current seat headrest angle position. [권한 CAR_SEATS]
+  - `getCurrentSeatBackrestAnglePosition(area, onComplete, onFailed)` — Gets the current seat backrest angle position. [권한 CAR_SEATS]
+  - `getCurrentSeatBeltBuckledState(area, onComplete, onFailed)` — Gets the current seat belt buckled state. [권한 CAR_SEATS]
+  - `moveSeatBeltHeight(area, value, onComplete, onFailed)` — Moves the seat belt height. [권한 CONTROL_CAR_SEATS]
+  - `getCurrentSeatBeltHeightPosition(area, onComplete, onFailed)` — Gets the current seat belt height position. [권한 CAR_SEATS]
+  - `moveSeatForeAft(area, value, onComplete, onFailed)` — Moves the seat fore/aft. [권한 CONTROL_CAR_SEATS]
+  - `setHvacSeatTemperature(area, value, onComplete, onFailed)` — Sets the seat heating/cooling temperature. [권한 CONTROL_CAR_SEATS]
+  - `getHvacSeatTemperature(area, onComplete, onFailed)` — Gets the current seat heating/cooling temperature. [권한 CAR_SEATS]
+  - `getHvacSeatVentilationState(area, onComplete, onFailed)` — Gets the current seat ventilation state. [권한 CAR_SEATS]
+  - `setHvacSeatVentilation(area, value, onComplete, onFailed)` — Sets the seat ventilation. [권한 CONTROL_CAR_SEATS]
+  - `registerSeatOccupancy(area, listener)` — Registers the SeatOccupancy to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatOccupancy(area, listener)` — Stops getting property updates for the given SeatOccupancy. [권한 CAR_SEATS]
+  - `registerSeatBackrestAnglePosition(area, listener)` — Registers the SeatBackrestAnglePosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatBackrestAnglePosition(area, listener)` — Stops getting property updates for the given SeatBackrestAnglePosition. [권한 CAR_SEATS]
+  - `registerSeatBeltBuckledState(area, listener)` — Registers the SeatBeltBuckledState to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatBeltBuckledState(area, listener)` — Stops getting property updates for the given SeatBeltBuckledState. [권한 CAR_SEATS]
+  - `registerSeatBeltHeightPosition(area, listener)` — Registers the SeatBeltHeightPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatBeltHeightPosition(area, listener)` — Stops getting property updates for the given SeatBeltHeightPosition. [권한 CAR_SEATS]
+  - `registerSeatDepthPosition(area, listener)` — Registers the SeatDepthPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatDepthPosition(area, listener)` — Stops getting property updates for the given SeatDepthPosition. [권한 CAR_SEATS]
+  - `registerSeatForeAftPosition(area, listener)` — Registers the SeatForeAftPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatForeAftPosition(area, listener)` — Stops getting property updates for the given SeatForeAftPosition. [권한 CAR_SEATS]
+  - `registerSeatHeadrestAnglePosition(area, listener)` — Registers the SeatHeadrestAnglePosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatHeadrestAnglePosition(area, listener)` — Stops getting property updates for the given SeatHeadrestAnglePosition. [권한 CAR_SEATS]
+  - `registerSeatHeadrestForeAftPosition(area, listener)` — Registers the SeatHeadrestForeAftPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatHeadrestForeAftPosition(area, listener)` — Stops getting property updates for the given SeatHeadrestForeAftPosition. [권한 CAR_SEATS]
+  - `registerSeatHeadrestHeightAftPosition(area, listener)` — Registers the SeatHeadrestHeightAftPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatHeadrestHeightAftPosition(area, listener)` — Stops getting property updates for the given SeatHeadrestHeightAftPosition. [권한 CAR_SEATS]
+  - `registerSeatHeightPosition(area, listener)` — Registers the SeatHeightPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatHeightPosition(area, listener)` — Stops getting property updates for the given SeatHeightPosition. [권한 CAR_SEATS]
+  - `registerSeatLumbarForeAftPosition(area, listener)` — Registers the SeatLumbarForeAftPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatLumbarForeAftPosition(area, listener)` — Stops getting property updates for the given SeatLumbarForeAftPosition. [권한 CAR_SEATS]
+  - `registerSeatLumbarSideSupportPosition(area, listener)` — Registers the SeatLumbarSideSupportPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatLumbarSideSupportPosition(area, listener)` — Stops getting property updates for the given SeatLumbarSideSupportPosition. [권한 CAR_SEATS]
+  - `registerSeatTiltPosition(area, listener)` — Registers the SeatTiltPosition to get property updates. [권한 CAR_SEATS]
+  - `unregisterSeatTiltPosition(area, listener)` — Stops getting property updates for the given SeatTiltPosition. [권한 CAR_SEATS]
+  - `registerHvacSeatTemperature(area, listener)` — Registers the HvacSeatTemperature to get property updates. [권한 CAR_SEATS]
+  - `unregisterHvacSeatTemperature(area, listener)` — Stops getting property updates for the given HvacSeatTemperature. [권한 CAR_SEATS]
+  - `registerHvacSeatVentilation(area, listener)` — Registers the HvacSeatVentilation to get property updates. [권한 CAR_SEATS]
+  - `unregisterHvacSeatVentilation(area, listener)` — Stops getting property updates for the given HvacSeatVentilation. [권한 CAR_SEATS]
+- **SideMirror**
+  - `checkHvacSideMirrorHeatCapabilities(onComplete, onFailed)` —  [권한 CAR_MIRRORS]
+  - `getHvacSideMirrorHeatState(area, onComplete, onFailed)` — Gets the current side mirror heat state. [권한 CAR_MIRRORS]
+  - `setHvacSideMirrorHeat(area, value, onComplete, onFailed)` — Sets the side mirror heat state. [권한 CONTROL_CAR_MIRRORS]
+  - `registerHvacSideMirrorHeatState(area, listener)` — Registers HvacSideMirrorHeatState state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacSideMirrorHeatState(area, listener)` — Stops getting property updates for the given HvacSideMirrorHeatState state. [권한 CAR_CLIMATE]
+- **SteeringWheel**
+  - `checkHvacSteeringWheelHeatCapabilities(onComplete, onFailed)` —  [권한 CAR_CLIMATE]
+  - `checkSteeringWheelAngleCapabilities(onComplete, onFailed)` — Gets the capabilities for the front-wheel steering angle. [권한 CAR_DRIVE]
+  - `getHvacSteeringWheelHeatState(onComplete, onFailed)` — Gets the current SteeringWheel heating/cooling state. [권한 CAR_CLIMATE]
+  - `setHvacSteeringWheelHeat(value, onComplete, onFailed)` — Sets SteeringWheel heating/cooling temperature. [권한 CONTROL_CAR_CLIMATE]
+  - `getCurrentSteeringWheelAngle(onComplete, onFailed)` — Gets the current front-wheel steering angle in degrees. [권한 CAR_DRIVE]
+  - `registerSteeringWheelAngle(listener)` — Registers a listener to receive front-wheel steering angle updates. [권한 CAR_DRIVE]
+  - `unregisterSteeringWheelAngle(listener)` — Unregisters the given listener from front-wheel steering angle updates. [권한 CAR_DRIVE]
+  - `registerHvacSteeringWheelHeatState(listener)` — Registers Hvac SteeringWheel heat state to get property updates. [권한 CAR_CLIMATE]
+  - `unregisterHvacSteeringWheelHeatState(listener)` — Stops getting property updates for the given Hvac SteeringWheel heat state. [권한 CAR_CLIMATE]
+- **Tire**
+  - `checkWheelAreaCapabilities(onComplete, onFailed)` —  [권한 CAR_SAFETY]
+  - `checkLowTirePressureCapabilities(onComplete, onFailed)` — Gets low tire pressure capabilities. [권한 CAR_SAFETY]
+  - `getLowTirePressure(area, onComplete, onFailed)` — Gets the critically low tire pressure threshold in kilopascals (kPa). [권한 CAR_SAFETY]
+  - `checkTirePressureCapabilities(onComplete, onFailed)` — Gets Tire Pressure Capabilities [권한 PRIVATE_CAR_SAFETY]
+  - `getTirePressure(area, onComplete, onFailed)` — Gets the current tire pressure in kilopascals (kPa). [권한 PRIVATE_CAR_SAFETY]
+  - `registerTirePressure(area, listener)` — Registers a listener to receive tire pressure updates for the specified wheel area. [권한 PRIVATE_CAR_SAFETY]
+  - `unregisterTirePressure(area, listener)` — Unregisters a previously registered tire pressure listener for the specified wheel area. [권한 PRIVATE_CAR_SAFETY]
+- **Toll**
+  - `checkEtcsVoiceGuidanceVolumeCapabilities(onComplete, onFailed)` — Gets ETCS voice guidance volume capabilities. [권한 CAR_TOLL]
+  - `getCurrentEtcsVoiceGuidanceVolume(onComplete, onFailed)` — Gets current ETCS voice guidance volume. [권한 CAR_TOLL]
+  - `setEtcsVoiceGuidanceVolume(value, onComplete, onFailed)` — Sets ETCS voice guidance volume. [권한 CONTROL_CAR_TOLL]
+  - `registerEtcsVoiceGuidanceVolume(listener)` — Registers ETCS voice guidance volume updates. [권한 CAR_TOLL]
+  - `unregisterEtcsVoiceGuidanceVolume(listener)` — Stops ETCS voice guidance volume updates. [권한 CAR_TOLL]
+- **TurnSignal**
+  - `checkTurnSignalStateCapabilities(onComplete, onFailed)` — Gets turn signal state capabilities. [권한 CAR_LIGHTS]
+  - `getCurrentTurnSignalState(onComplete, onFailed)` — Gets the current turn signal state. [권한 CAR_LIGHTS]
+  - `registerTurnSignalState(listener)` — Registers the turn signal state to get property updates. [권한 CAR_LIGHTS]
+  - `unregisterTurnSignalState(listener)` — Stops getting property updates for the given turn signal state. [권한 CAR_LIGHTS]
+- **Window**
+  - `checkMoveWindowBlindCapabilities(onComplete, onFailed)` — Gets move window blind capabilities. [권한 CAR_WINDOWS]
+  - `checkWindowBlindPositionCapabilities(onComplete, onFailed)` — Gets window blind position capabilities. [권한 CAR_WINDOWS]
+  - `checkSmartGlassStateCapabilities(onComplete, onFailed)` — Gets smart glass state capabilities. [권한 CAR_WINDOWS]
+  - `checkSmartGlassZoneStateCapabilities(onComplete, onFailed)` — Gets smart glass zone state capabilities. [권한 CAR_WINDOWS]
+  - `checkSmartGlassLevelCapabilities(onComplete, onFailed)` — Gets smart glass level capabilities. [권한 CAR_WINDOWS]
+  - `checkWindowLockCapabilities(onComplete, onFailed)` —  [권한 CAR_WINDOWS]
+  - `checkWindowPositionCapabilities(onComplete, onFailed)` —  [권한 CAR_WINDOWS]
+  - `setWindowLock(area, value, onComplete, onFailed)` — Sets the current window lock state. [권한 CONTROL_CAR_WINDOWS]
+  - `getCurrentWindowLockState(area, onComplete, onFailed)` — Gets the current window lock state. [권한 CAR_WINDOWS]
+  - `getCurrentWindowPosition(area, onComplete, onFailed)` — Gets the current window position. [권한 CAR_WINDOWS]
+  - `setWindowPosition(area, value, onComplete, onFailed)` — Sets the current window position state. [권한 CONTROL_CAR_WINDOWS]
+  - `getCurrentWindowBlindPosition(area, onComplete, onFailed)` — Gets the current Window Blind Position for the specified window area. [권한 CAR_WINDOWS]
+  - `moveWindowBlind(area, value, onComplete, onFailed)` — Moves the Window Blind for the specified window area. [권한 CONTROL_CAR_WINDOWS]
+  - `getCurrentSmartGlassState(onComplete, onFailed)` — Gets the current Smart Glass state. [권한 CAR_WINDOWS]
+  - `setSmartGlassState(value, onComplete, onFailed)` — Sets the Smart Glass state. [권한 CONTROL_CAR_WINDOWS]
+  - `setSmartGlassZoneState(area, value, onComplete, onFailed)` — Sets the Smart Glass zone state by submitting one command per smart glass panel for the specified window area. [권한 CONTROL_CAR_WINDOWS]
+  - `getSmartGlassConfig(area, onComplete, onFailed)` — Gets the Smart Glass configuration for the specified window area. [권한 CAR_WINDOWS]
+  - `getCurrentSmartGlassLevel(area, onComplete, onFailed)` — Gets the current Smart Glass Level for the specified window area. [권한 CAR_WINDOWS]
+  - `setSmartGlassLevel(area, value, onComplete, onFailed)` — Sets the Smart Glass Level for the specified window area. [권한 CONTROL_CAR_WINDOWS]
+  - `registerWindowLockState(area, listener)` — Registers the window lock state to get property updates. [권한 CAR_WINDOWS]
+  - `unregisterWindowLockState(area, listener)` — Stops getting property updates for the given window lock state. [권한 CAR_WINDOWS]
+  - `registerWindowPosition(area, listener)` — Registers the window area to get property updates. [권한 CAR_WINDOWS]
+  - `unregisterWindowPosition(area, listener)` — Stops getting property updates for the given window position. [권한 CAR_WINDOWS]
+  - `registerWindowBlindPosition(area, listener)` — Registers a listener to receive Window Blind Position updates for the specified window area. [권한 CAR_WINDOWS]
+  - `unregisterWindowBlindPosition(area, listener)` — Unregisters a previously registered Window Blind Position listener for the specified window area. [권한 CAR_WINDOWS]
+  - `registerSmartGlassLevel(area, listener)` — Registers a listener to receive Smart Glass Level updates for the specified window area. [권한 CAR_WINDOWS]
+  - `unregisterSmartGlassLevel(area, listener)` — Unregisters a previously registered Smart Glass Level listener for the specified window area. [권한 CAR_WINDOWS]
+  - `registerSmartGlassState(listener)` — Registers Smart Glass state listener. [권한 CAR_WINDOWS]
+  - `unregisterSmartGlassState(listener)` — Unregisters Smart Glass state listener. [권한 CAR_WINDOWS]
+- **Wiper**
+  - `checkWiperStateCapabilities(onComplete, onFailed)` —  [권한 CAR_WINDOWS]
+  - `checkWiperSwitchCapabilities(onComplete, onFailed)` —  [권한 CAR_WINDOWS]
+  - `getCurrentWiperState(area, onComplete, onFailed)` — Gets the current wiper mode state. [권한 CAR_WINDOWS]
+  - `getCurrentWiperSwitch(area, onComplete, onFailed)` — Gets the current Wiper Switch state for the specified window area. [권한 CAR_WINDOWS]
+  - `setWiperSwitch(area, value, onComplete, onFailed)` — Sets the current wiper switch. [권한 CONTROL_CAR_WINDOWS]
+  - `registerWiperState(area, listener)` — Registers the wiper state to get property updates. [권한 CAR_WINDOWS]
+  - `unregisterWiperState(area, listener)` — Stops getting property updates for the given wiper state. [권한 CAR_WINDOWS]
+
+### `vehicle`
+
+- **Vehicle**
+  - `onSelected(selection)`
+  - `onFailed(e)`
+  - `initialize()` — Initialize sdk. It is called while the application is created.
+  - `release()` — Release sdk. It is called while the application is destroyed.
+  - `getEvBattery()` — Get the object of EvBattery to use EvBattery APIs.
+  - `getHVAC()` — Get the object of HVAC to use HVAC APIs.
+  - `getDoor()` — Get the object of Door to use Door APIs.
+  - `getSeat()` — Get the object of Seat to use Seat APIs.
+  - `getWindow()` — Get the object of Window to use Window APIs.
+  - `getDisplay()` — Get the object of Display to use Display APIs.
+  - `getOdometer()` — Get the object of Odometer to use Odometer APIs.
+  - `getLight()` — Get the object of Light to use Light APIs.
+  - `getSafety()` — Get the object of Safety to use Safety APIs.
+  - `getCarInfo()` — Get the object of CarInfo to use CarInfo APIs.
+  - `getDrivingMode()` — Get the object of DrivingMode to use DrivingMode APIs.
+  - `getGear()` — Get the object of Gear to use Gear APIs.
+  - `getSteeringWheel()` — Get the object of SteeringWheel to use SteeringWheel APIs.
+  - `getToll()` — Get the object of Toll to use Toll APIs.
+  - `getTurnSignal()` — Get the object of TurnSignal to use TurnSignal APIs.
+  - `getWiper()` — Get the object of Wiper to use Wiper APIs.
+  - `getTire()` — Get the object of Tire to use Tire APIs.
+  - `getSideMirror()` — Get the object of SideMirror to use SideMirror APIs.
+  - `getBrake()` — Get the object of Brake to use Brake APIs.
+  - `getFuel()` — Get the object of Fuel to use Fuel APIs.
+
+### `vehicle/api/model/area`
+
+- **DoorArea**
+  - `equals(other)`
+  - `hashCode()`
+- **MirrorArea**
+  - `equals(other)`
+  - `hashCode()`
+- **SeatArea**
+  - `equals(other)`
+  - `hashCode()`
+- **TurnSignalArea**
+  - `equals(other)`
+  - `hashCode()`
+- **WheelArea**
+  - `equals(other)`
+  - `hashCode()`
+- **WindowArea**
+  - `equals(other)`
+  - `hashCode()`
+
+### `vehicle/api/model/capability`
+
+- **AccessType** (enum): NONE, READ, WRITE, READ_WRITE
+
+### `vehicle/api/model/common`
+
+- **TripStatistics**
+  - `get(type)`
+
+### `vehicle/constant/area`
+
+- **DoorValue** (enum): ROW_1_LEFT, ROW_2_LEFT, ROW_3_LEFT, HOOD
+- **MirrorValue** (enum): DRIVER_LEFT, DRIVER_CENTER
+- **SeatValue** (enum): ROW_1_LEFT, ROW_2_LEFT, ROW_3_LEFT
+- **TurnSignalValue** (enum): OFF, RIGHT, LEFT
+- **WheelValue** (enum): UNKNOWN, LEFT_FRONT, LEFT_REAR
+- **WindowValue** (enum): FRONT_WINDSHIELD, ROW_1_LEFT, ROW_2_LEFT, ROOF_TOP_1
+
+### `vehicle/constant/control`
+
+- **CruiseControl** (enum): OTHER, ENABLED, ACTIVATED, USER_OVERRIDE, SUSPENDED, FORCED_DEACTIVATION_WARNING
+- **DrivingModeType** (enum): NORMAL, ECO, SPORT
+- **EvChargeState** (enum): UNKNOWN, CHARGING, FULLY_CHARGED, NOT_CHARGING, ERROR
+- **EvConnectorType** (enum): UNKNOWN, IEC_TYPE_1_AC, IEC_TYPE_2_AC, IEC_TYPE_3_AC, IEC_TYPE_4_DC, IEC_TYPE_1_CCS_DC, IEC_TYPE_2_CCS_DC, TESLA_ROADSTER, TESLA_HPWC, TESLA_SUPERCHARGER, GBT_AC, GBT_DC, OTHER
+- **EvRegenerativeBrakingState** (enum): UNKNOWN, DISABLED, PARTIALLY_ENABLED, FULLY_ENABLED
+- **FanDirectionType** (enum): UNKNOWN, FACE, FLOOR, FACE_AND_FLOOR, DEFROST, FACE_AND_DEFROST, DEFROST_AND_FLOOR, FACE_AND_FLOOR_AND_DEFROST
+- **FuelType** (enum): BIODIESEL, CNG, DIESEL_1, DIESEL_2, E85, ELECTRIC, HYDROGEN, LEADED, LNG, LPG, OTHER, UNKNOWN, UNLEADED
+- **GsrComplianceType** (enum): GSR_COMPLIANCE_TYPE_NOT_REQUIRED, GSR_COMPLIANCE_TYPE_REQUIRED_V1
+- **IgnitionState** (enum): UNDEFINED, LOCK, OFF, ACC, ON, START
+- **LightState** (enum): OFF, ON, DAYTIME_RUNNING
+- **LightSwitch** (enum): OFF, ON, DAYTIME_RUNNING, AUTOMATIC
+- **MoveControl** (enum): BACKWARD, STOP, FORWARD
+- **OilLevelState** (enum): LOW, HIGH, NORMAL, ERROR, CRITICALLY_LOW
+- **PortLocationType** (enum): UNKNOWN, FRONT_LEFT, FRONT_RIGHT, REAR_RIGHT, REAR_LEFT, FRONT, REAR
+- **SmartGlassZoneCommand** (enum): SKIP, OFF, ON
+- **SteeringControl** (enum): OFF, READY, ACTIVE
+- **TripStatisticType** (enum): CURRENT, INSTANTANEOUS, CUMULATIVE, SINCE_REFILL
+- **VehicleGear** (enum): GEAR_UNKNOWN, GEAR_NEUTRAL, GEAR_REVERSE, GEAR_PARK, GEAR_DRIVE, GEAR_1, GEAR_2, GEAR_3, GEAR_4, GEAR_5, GEAR_6, GEAR_7, GEAR_8, GEAR_9
+- **WiperState** (enum): OTHER, OFF, ON, SERVICE
+- **WiperSwitch** (enum): OTHER, OFF, MIST, INTERMITTENT_LEVEL_1, INTERMITTENT_LEVEL_2, INTERMITTENT_LEVEL_3, INTERMITTENT_LEVEL_4, INTERMITTENT_LEVEL_5, CONTINUOUS_LEVEL_1, CONTINUOUS_LEVEL_2, CONTINUOUS_LEVEL_3, CONTINUOUS_LEVEL_4, CONTINUOUS_LEVEL_5, AUTO, SERVICE
+
+### `vehicle/constant/telltale`
+
+- **TelltaleColor** (enum): WHITE, GREEN, BLUE, YELLOW, RED, GRAY
+- **TelltaleState** (enum): OFF, ON, BLINK
+- **TelltaleType** (enum): PARKING_BRAKE, ELECTRONIC_PARKING_BRAKE, SEAT_BELT, DOOR_OPEN, ABS, MDPS, TPMS, LOW_VOLT_BATTERY, ESC, ESC_OFF, AIRBAG, AFS, MASTER_WARNING, AUTO_HOLD, AUTO_HIGH_BEAM, HEADLAMP_LOW, HEADLAMP_HIGH, POSITION_LAMP, FRONT_FOG_LAMP, REAR_FOG_LAMP, ENGINE_OIL_PRESSURE, ENGINE_TEMPERATURE, EMERGENCY_CALL, EV_SYSTEM, POWER_DOWN, RBS, IMMOBILIZER, ENGINE, LED_HEADLAMP, PREHEAT, PARTICLE_FILTER, H2_SENSOR, H2_LEAK, PASSENGER_AIRBAG_OFF, PASSENGER_AIRBAG_ON, TURN_SIGNAL_LEFT, TURN_SIGNAL_RIGHT, ICY_ROAD, OVER_SPEED, WATER_SEPARATOR, SCR, LOW_EV_BATTERY, HEV_SYSTEM, FCEV_SYSTEM, EREV_SYSTEM, LPI, EV_CHARG
+
+### `vehicle/constant/unit`
+
+- **DistanceDisplayUnit** (enum): KILOMETER, MILE
+- **EvBatteryDisplayUnit** (enum): WATT_HOUR, AMPERE_HOURS, KILOWATT_HOUR
+- **SpeedDisplayUnit** (enum): METER_PER_SEC, MILES_PER_HOUR, KILOMETERS_PER_HOUR
+- **TemperatureUnit** (enum): CELSIUS, FAHRENHEIT
+
+### `vehicle/listener`
+
+- **AmbientColorAutoByDriveModeEnabledListener**
+  - `onAmbientColorAutoByDriveModeEnabledUpdated(enabled)` — Callback invoked when AmbientColorAutoByDriveModeEnabled updates.
+- **AmbientLightBrightnessColorListener**
+  - `onBrightnessColorUpdated(argbColor)` — Callback invoked when AmbientLightBrightnessColor updates.
+- **AmbientLightBrightnessListener**
+  - `onBrightnessUpdated(brightness)` — Callback invoked when AmbientLightBrightness updates.
+- **BrakePedalStatusListener**
+  - `onBrakePedalStatusUpdated(status)` — Callback invoked when BrakePedalStatus updates.
+- **CruiseControlStateListener**
+  - `onCruiseControlStateUpdated(state)` — Callback invoked when the CruiseControlState updates.
+- **CruiseControlTargetSpeedListener**
+  - `onCruiseControlTargetSpeedUpdated(speed)` — Called with the updated cruise control target speed in meters per second (m/s).
+- **DistanceDrivenListener**
+  - `onDistanceDrivenUpdated(value)` — Called with the updated distance in kilometers (km) or meters (m), depending on the registration API.
+- **DoorLockStateListener**
+  - `onDoorLockStateUpdated(state)` — Callback invoked when the door lock state updates.
+- **DoorPositionListener**
+  - `onPositionUpdated(pos)` — Callback invoked when the door position updates.
+- **DrivingModeStateListener**
+  - `onDrivingModeStateUpdated(state)` — Callback invoked when the DrivingModeState updates.
+- **DrivingTimeListener**
+  - `onDrivingTimeUpdated(value)` — Callback invoked when driving time updates.
+- **EtcsVoiceGuidanceVolumeListener**
+  - `onEtcsVoiceGuidanceVolumeUpdated(volume)` — Callback invoked when ETCS voice guidance volume updates.
+- **EvBatteryEfficiencyListener**
+  - `onEvBatteryEfficiencyUpdated(efficiency)` — Callback invoked when EV battery efficiency updates.
+- **EvBatteryLevelListener**
+  - `onEvBatteryLevelUpdated(level)` — Callback invoked when battery level updates.
+- **EvBatteryStateOfChargeListener**
+  - `onEvBatteryStateOfChargeUpdated(value)` — Callback invoked with the updated EV battery state of charge as a percentage (%).
+- **EvChargePortOpenListener**
+  - `onEvChargePortOpenUpdated(isOpened)` — Callback invoked when EvChargePortOpen updates.
+- **FuelEconomyListener**
+  - `onFuelEconomyUpdated(efficiency)` — Callback invoked when fuel economy updates.
+- **FuelPercentListener**
+  - `onFuelPercentUpdated(value)` — Callback invoked with the updated fuel level as a percentage (%).
+- **GearSelectionListener**
+  - `onSelected(gear)` — Callback invoked when the gear selection changes.
+- **GloveBoxLockStateListener**
+  - `onGloveBoxLockStateUpdated(state)` — Callback invoked when the GloveBox lock state updates.
+- **HvacAcStateListener**
+  - `onHvacAcStateUpdated(state)` — Callback invoked when HvacAcState updates.
+- **HvacAirCleanerStateListener**
+  - `onHvacAirCleanerStateUpdated(state)` — Callback invoked when HvacAirCleanerState updates.
+- **HvacAutoStateListener**
+  - `onHvacAutoStateUpdated(state)` — Callback invoked when HvacAutoState updates.
+- **HvacDefrosterStateListener**
+  - `onHvacDefrosterStateUpdated(state)` — Callback invoked when HvacDefrosterState updates.
+- **HvacDualStateListener**
+  - `onHvacDualStateUpdated(state)` — Callback invoked when HvacDualState updates.
+- **HvacFanSpeedListener**
+  - `onHvacFanSpeedUpdated(speed)` — Callback invoked when HvacFanSpeed updates.
+- **HvacMaxAcStateListener**
+  - `onHvacMaxAcStateUpdated(state)` — Callback invoked when HvacMaxAcState updates.
+- **HvacMaxDefrostStateListener**
+  - `onHvacMaxDefrostStateUpdated(state)` — Callback invoked when HvacMaxDefrostState updates.
+- **HvacPowerStateListener**
+  - `onHvacPowerStateUpdated(state)` — Callback invoked when HvacPowerState updates.
+- **HvacRecirculationStateListener**
+  - `onHvacAutoRecirculationStateUpdated(state)` — Callback invoked when HvacAutoRecirculationState updates.
+- **HvacSeatTemperatureListener**
+  - `onHvacSeatTemperatureUpdated(temperature)` — Callback invoked when HvacSeatTemperature updates.
+- **HvacSeatVentilationListener**
+  - `onHvacSeatVentilationUpdated(ventilation)` — Callback invoked when HvacSeatVentilation updates.
+- **HvacSideMirrorHeatStateListener**
+  - `onHvacSideMirrorHeatStateUpdated(state)` — Callback invoked when HvacSideMirrorHeatState updates.
+- **HvacSteeringWheelHeatStateListener**
+  - `onHvacSteeringWheelHeatStateUpdated(state)` — Callback invoked when the HvacSteeringWheelHeatState updates.
+- **HvacTemperatureListener**
+  - `onHvacTemperatureUpdated(temperature)` — Called with the updated HVAC temperature in degrees Celsius (°C).
+- **HvacTemperatureValueListener**
+  - `onHvacTemperatureUpdated(celsius, fahrenheit)` — Callback invoked when HVAC temperature updates.
+- **LightStateListener**
+  - `onLightStateUpdated(state)` — Callback invoked when HighBeamLightState updates.
+- **LowWasherFluidWaringListener**
+  - `onLowWasherFluidWaringUpdated(state)` — Callback invoked when the LowWasherFluidWaring updates.
+- **OilLevelStateListener**
+  - `onOilLevelUpdated(level)` — Callback invoked when the OilLevelState updates.
+- **PowerDownWarningIndicatorListener**
+  - `onPowerDownWarningIndicatorUpdated(state)` — Callback invoked when the PowerDownWarningIndicator updates.
+- **RangeRemainingListener**
+  - `onRangeRemainingChanged(rangeRemaining)` — Callback invoked when the range remaining changes.
+- **SeatAirbagDeployedListener**
+  - `onSeatAirbagDeployUpdated(deployed)` — Callback invoked when SeatAirbagDeployed updates.
+- **SeatAirbagEnabledListener**
+  - `onSeatAirbagEnabledUpdated(enabled)` — Callback invoked when SeatAirbagEnabled updates.
+- **SeatBackrestAnglePositionListener**
+  - `onSeatBackrestAnglePositionUpdated(position)` — Callback invoked when SeatBackrestAnglePosition updates.
+- **SeatBeltBuckledStateListener**
+  - `onSeatBeltBuckledStateUpdated(state)` — Callback invoked when SeatBeltBuckledState updates.
+- **SeatBeltHeightPositionListener**
+  - `onSeatBeltHeightPositionUpdated(position)` — Callback invoked when SeatBeltHeightPosition updates.
+- **SeatBeltNotBuckledWarningListener**
+  - `onSeatBeltNotBuckledWarningUpdated(state)` — Callback invoked when SeatBeltNotBuckledWarning updates.
+- **SeatDepthPositionListener**
+  - `onSeatDepthPositionUpdated(position)` — Callback invoked when SeatDepthPosition updates.
+- **SeatForeAftPositionListener**
+  - `onSeatForeAftPositionUpdated(position)` — Callback invoked when SeatForeAftPosition updates.
+- **SeatHeadrestAnglePositionListener**
+  - `onSeatHeadrestAnglePositionUpdated(position)` — Callback invoked when SeatHeadrestAnglePosition updates.
+- **SeatHeadrestForeAftPositionListener**
+  - `onSeatHeadrestForeAftPositionUpdated(position)` — Callback invoked when SeatHeadrestForeAftPosition updates.
+- **SeatHeadrestHeightAftPositionListener**
+  - `onSeatHeadrestHeightAftPositionUpdated(position)` — Callback invoked when SeatHeadrestHeightAftPosition updates.
+- **SeatHeightPositionListener**
+  - `onSeatHeightPositionUpdated(position)` — Callback invoked when SeatHeightPosition updates.
+- **SeatLumbarForeAftPositionListener**
+  - `onSeatLumbarForeAftPositionUpdated(position)` — Callback invoked when SeatLumbarForeAftPosition updates.
+- **SeatLumbarSideSupportPositionListener**
+  - `onSeatLumbarSideSupportPositionUpdated(position)` — Callback invoked when SeatLumbarSideSupportPosition updates.
+- **SeatOccupancyListener**
+  - `onSeatOccupancyUpdated(occupancy)` — Callback invoked when SeatOccupancy updates.
+- **SeatTiltPositionListener**
+  - `onSeatTiltPositionUpdated(position)` — Callback invoked when SeatTiltPosition updates.
+- **SmartGlassLevelListener**
+  - `onSmartGlassLevelUpdated(level)` — Callback invoked when SmartGlass Level updates.
+- **SmartGlassStateListener**
+  - `onSmartGlassStateUpdated(state)` — Callback invoked when SmartGlassState updates.
+- **SteeringWheelAngleListener**
+  - `onSteeringWheelAngleUpdated(angle)` — Called when a front-wheel steering angle update is available.
+- **TelltaleInfoListener**
+  - `onTelltaleInfoUpdated(telltales)` — Callback invoked when TelltaleInfo updates.
+- **TemperatureDisplayUnitListener**
+  - `onTemperatureDisplayUnitUpdated(unit)` — Callback invoked when TemperatureDisplayUnit updates.
+- **TirePressureListener**
+  - `onTirePressureUpdated(pressure)` — Callback invoked when Tire Pressure updates.
+- **TripDrivingDistanceListener**
+  - `onTripDrivingDistanceUpdated(statistics)` — Callback invoked when trip driving distance updates.
+- **TripDrivingTimeListener**
+  - `onTripDrivingTimeUpdated(statistics)` — Callback invoked when trip driving time updates.
+- **TripEvEfficiencyListener**
+  - `onTripEvEfficiencyUpdated(statistics)` — Callback invoked when trip EV efficiency updates.
+- **TripFuelEconomyListener**
+  - `onTripFuelEconomyUpdated(statistics)` — Callback invoked when trip fuel economy updates.
+- **TurnSignalStateListener**
+  - `onTurnSignalStateUpdated(state)` — Callback invoked when TurnSignalStates updates.
+- **VehicleListener**
+  - `onFailed(e)` — Callback invoked when a exception occurs.
+- **WindowLockStateListener**
+  - `onWindowLockStateUpdated(state)` — Callback invoked when WindowLockState updates.
+- **WindowPositionListener**
+  - `onWindowPositionUpdated(position)` — Callback invoked when WindowPosition updates.
+- **WiperStateListener**
+  - `onWiperStateUpdated(state)` — Callback invoked when WiperState updates.
+
+## NaviHelper
+
+### `navi/helper`
+
+- **NaviHelper**
+  - `initialize()` — Initializes NaviHelper SDK.
+  - `initialize(onConnected, onFailed)` — Initializes NaviHelper SDK with connection callbacks.
+  - `release()` — Releases NaviHelper SDK.
+  - `addListener(listener)` — Adds a listener.
+  - `removeListener(listener)` — Removes a listener.
+  - `requestRoute(routeInfo)` — Requests route.
+  - `requestRouteWithWaypoints(request)` — Requests a route with waypoints.
+  - `cancelRoute()` — Cancels route.
+  - `addWaypoint(requestWaypointInfo)` — Adds waypoint.
+  - `removeWaypoint(waypointIndex)` — Removes waypoint.
+  - `changeRouteOption(routeOption)` — Changes route option.
+  - `requestReRoute()` — Requests re-route.
+  - `getBookmarkInfo()` — Gets bookmark info.
+  - `getRecentDestinationInfo()` — Gets recent destination info.
+  - `getRouteStateInfo()` — Gets route state info.
+  - `getCurrentLocationInfo()` — Gets current location info.
+  - `getDestinationInfo()` — Gets destination info.
+  - `getWaypointInfo()` — Gets waypoint info.
+  - `getTBTInfo()` — Gets TBT info.
+  - `getChargerOperatorInfo()` — Gets Charger Operator info.
+  - `requestNavigationScreen(requestScreen)` — Requests navigation screen.
+  - `requestTrip(tripRequest)` — Requests trip.
+
+### `navi/helper/api`
+
+- **InternalApi**
+  - `updateOccupiedRegion(region)` — Updates the currently occupied screen region.
+
+### `navi/helper/listener`
+
+- **NaviHelperEventListener**
+  - `onRouteStarted(routeStartInfo)` — Called when navigation route search begins.
+  - `onRouteEnded()`
+  - `onRoutingCompleted()` — Called when navigation route search is completed.
+  - `onReRouteEnded()` — Called when navigation re-route is completed.
+  - `onRouteOptionChanged(routeOption)` — Called when the route type is changed.
+  - `onRouteCancelled()` — Called when the current route is canceled.
+  - `onWaypointChanged(waypointChangedInfo)` — Called when arriving at or removing the waypoint.
+  - `onDestinationArrived(destinationArrivedInfo)` — Called when arriving at the destination.
+  - `onWayPointArrived(waypointArrivedInfo)` — Called when arriving at the waypoint.
+  - `onBookMarkChanged()` — Called when arriving at or removing the bookmark.
+  - `onDestinationChanged()` — Called when arriving at or removing the destination.
+  - `onError(errorCode)` — Called when a navigation error occurs.
+  - `onCurrentLocationInfo(currentLocationInfo)` — Called when the current location information is changed.
+  - `onRouteStateInfo(routeStateInfo)` — Called when the route state information is changed.
+  - `onDestinationInfo(destinationInfo)` — Called when the destination information is changed.
+  - `onWayPointInfo(waypointInfoList)` — Called when the waypoint information is changed.
+  - `onRecentDestinationInfo(recentDestinationInfoList)` — Called when the recent destination information is changed.
+  - `onBookmarkInfo(bookmarkInfoList)` — Called when the bookmark information is changed.
+  - `onCurrentRoadSpeedLimit(speedLimit)` — Called when the road speed limit is notified.
+  - `onCameraAlert(cameraAlertList)` — Called when camera alerts are notified.
+  - `onDrivingInfo(drivingInfo)` — Called when driving information is notified.
+  - `onNavigationStatus(status)` — Called when the navigation status is notified.
+  - `onTBTInfo(tbtInfoList)` — Called when the TBT information is notified.
+  - `onChargerOperatorInfo(chargerOperatorList)` — Called when charger operator information is notified.
+  - `onCautionPointInfo(cautionPointList)` — Called when caution point information is notified.
+  - `onTripInfo(tripInfo)` — Called when trip information is notified.
+
+## FusedLocation
+
+### `location/fused`
+
+- **FusedLocation**
+  - `initialize()` — Initializes the SDK.
+  - `release()` — Releases the SDK.
+  - `isSupported()` — Returns whether the Fused Location Service package is present on Pleos Connect.
+  - `getLastKnownLocation(callback)` — Gets the last known location. [권한 FUSED_LOCATION]
+  - `registerFusedLocationCallback(listener)` — Registers a callback to receive location updates. [권한 FUSED_LOCATION]
+  - `unregisterFusedLocationCallback(listener)` — Stops receiving location updates through the specified listener. [권한 FUSED_LOCATION]
+  - `addProximityAlert(request, listener)` — Registers a proximity alert for the specified area and transitions. [권한 FUSED_LOCATION]
+  - `removeProximityAlert(alertId)` — Removes a previously registered proximity alert. [권한 FUSED_LOCATION]
+  - `showLocationAccessBlockedPopup()` — Displays a popup message informing the user that location access
+
+### `location/fused/listener`
+
+- **FusedLocationListener**
+  - `onChanged(location)` — Invoked when a location update is available.
+  - `onError(exception)`
+- **ProximityAlertListener**
+  - `onRegistered(alertId)` — Invoked when the alert is registered successfully.
+  - `onTransition(event)` — Invoked when a configured proximity transition is detected.
+  - `onError(exception)` — Invoked when the alert cannot be registered or processed.
+
+### `location/fused/model`
+
+- **ProximityTransition** (enum): ENTER, EXIT
+
+## TextToSpeech (바이너리에서 추출)
+
+- **ITtsCallback** (interface)
+  - `onResponse(String, String)` → void
+- **ITtsOnDeviceStream** (interface)
+  - `registerCallback(ITtsCallback, String)` → void
+  - `unregisterCallback(ITtsCallback)` → void
+  - `setSpeaker(String, String)` → void
+  - `speak(String, boolean, String, AudioAttributesParcel)` → void
+  - `stop(String)` → void
+  - `setLocale(String, String)` → void
+  - `setSpeakerType(String, String)` → void
+  - `speakWithAudioConfig(String, int, boolean, String, AudioAttributesParcel, String)` → void
+- **ITtsStream** (interface)
+  - `registerCallback(ITtsCallback, String)` → void
+  - `unregisterCallback(ITtsCallback)` → void
+  - `setSpeaker(String, String)` → void
+  - `setEncodingType(int, String)` → void
+  - `setEicServer(int, String, String, String)` → void
+  - `updateEicContextInfo(String, String)` → void
+  - `requestSynthesize(AudioAttributesParcel, String)` → void
+  - `speak(String, boolean, String)` → void
+  - `stop(String)` → void
+  - `speak2(String, boolean, String, AudioAttributesParcel)` → void
+  - `registerApp(int, String, String, String, String)` → void
+  - `closeGrpcConnection(String)` → void
+  - `setMode(String, String)` → void
+  - `setLocale(String, String)` → void
+  - `setSpeakerType(String, String)` → void
+  - `speakWithUaToken(String, boolean, String, AudioAttributesParcel, String, String)` → void
+  - `speakForSpeechV2(String, boolean, String, AudioAttributesParcel, String)` → void
+  - `speakWithAudioConfig(String, int, boolean, String, AudioAttributesParcel, String, String, String)` → void
+- **AudioAttributesParcel** (class)
+  - `getAudioAttributes()` → AudioAttributes
+  - `writeToParcel(Parcel, int)` → void
+  - `describeContents()` → int
+  - `getContent()` → int
+  - `getUsage()` → int
+  - `getFlag()` → int
+  - `getAttributes()` → AudioAttributes
+- **AudioAttributesParcelKt** (class)
+- **AudioInfo** (class)
+  - `getZoneId()` → int
+- **BuildConfig** (class)
+- **TextToSpeech** (class)
+  - `initialize()` → void
+  - `initialize(OnInitializeListener)` → void
+  - `release()` → void
+  - `addEventListener(EventListener)` → void
+  - `removeEventListener(EventListener)` → void
+  - `setAudioAttributes(AudioAttributes)` → void
+  - `registerApp(String, String, OnServerConnectionListener)` → void
+  - `registerApp(String, String, String, Unit>, String, Unit>)` → void
+  - `registerApp(String, Unit>, String, Unit>)` → void
+  - `speak(String, boolean)` → void
+  - `stop()` → void
+  - `setLocale(Locale)` → void
+  - `setSpeakerType(String)` → void
+  - `setAudioZoneId(int)` → void
+  - `getAmbientAi()` → AmbientAi
+- **AmbientAi** (interface)
+  - `setSpeaker(String)` → void
+  - `updateEicContextInfo(String)` → void
+  - `setIdentifier(String)` → void
+  - `speak(String, boolean, String)` → void
+  - `speak(String, boolean, boolean, String)` → void
+- **AmbientAiImpl** (class)
+  - `setSpeaker(String)` → void
+  - `updateEicContextInfo(String)` → void
+  - `setIdentifier(String)` → void
+  - `speak(String, boolean, String)` → void
+  - `speak(String, boolean, boolean, String)` → void
+- **ApiChecker** (class)
+  - `b(Context)` → void
+  - `a(Context)` → void
+- **PrivilegedApi** (interface)
+- **ErrorType** (class)
+- **ErrorTypeKt** (class)
+  - `toErrorType(String)` → ErrorType
+- **EventCommand** (class)
+- **Mode** (class)
+- **ServiceConstants** (class)
+  - `getConst()` → String
+- **TtsJobMode** (class)
+  - `getFlags()` → int
+- **EventBus** (class)
+  - `a()` → String>
+  - `a(String)` → void
+- **OnDeviceStreamTts** (class)
+  - `a(OnDeviceStreamTts, Continuation)` → Object
+  - `h(OnDeviceStreamTts)` → StringBuilder
+  - `g(OnDeviceStreamTts)` → String
+  - `e(OnDeviceStreamTts)` → Context
+  - `b(OnDeviceStreamTts)` → AudioAttributes
+  - `c(OnDeviceStreamTts)` → int
+  - `d(OnDeviceStreamTts)` → int
+  - `f(OnDeviceStreamTts)` → Gson
+  - `a(OnDeviceStreamTts)` → void
+  - `i(OnDeviceStreamTts)` → boolean
+  - `a(OnDeviceStreamTts, ITtsOnDeviceStream, String)` → boolean
+  - `a(OnDeviceStreamTts, ITtsOnDeviceStream)` → boolean
+  - `j(OnDeviceStreamTts)` → void
+  - `c(OnDeviceStreamTts, ITtsOnDeviceStream)` → boolean
+  - `a(OnDeviceStreamTts, ITtsOnDeviceStream, boolean)` → void
+  - `b(OnDeviceStreamTts, ITtsOnDeviceStream)` → void
+  - `d(OnDeviceStreamTts, ITtsOnDeviceStream)` → void
+  - `a(OnDeviceStreamTts, boolean)` → Pair
+  - `b()` → void
+  - `a(OnInitializeListener)` → void
+  - `c()` → void
+  - `a(EventListener)` → void
+  - `b(EventListener)` → void
+  - `a(String, boolean, String)` → void
+  - `a(String, boolean, boolean, String)` → void
+  - `a(String, boolean, String, String)` → void
+  - `a(String, boolean, boolean, String, String)` → void
+  - `e()` → void
+  - `b(String)` → void
+  - `d(String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(String)` → void
+  - `a()` → void
+  - `a(Locale)` → void
+  - `c(String)` → void
+  - `a(AudioAttributes)` → void
+  - `a(int)` → void
+- **StreamTts** (class)
+  - `a(StreamTts, Continuation)` → Object
+  - `h(StreamTts)` → StringBuilder
+  - `g(StreamTts)` → String
+  - `d(StreamTts)` → Context
+  - `b(StreamTts)` → AudioAttributes
+  - `c(StreamTts)` → Integer
+  - `a(StreamTts)` → void
+  - `i(StreamTts)` → TtsCallback
+  - `f(StreamTts)` → Gson
+  - `e(StreamTts)` → String
+  - `b(StreamTts, boolean)` → void
+  - `j(StreamTts)` → boolean
+  - `b(StreamTts, ITtsStream, String)` → boolean
+  - `a(StreamTts, ITtsStream, String)` → boolean
+  - `a(StreamTts, ITtsStream)` → boolean
+  - `k(StreamTts)` → void
+  - `c(StreamTts, ITtsStream)` → boolean
+  - `a(StreamTts, ITtsStream, boolean)` → void
+  - `b(StreamTts, ITtsStream)` → void
+  - `d(StreamTts, ITtsStream)` → void
+  - `a(StreamTts, boolean)` → Pair
+  - `b()` → void
+  - `a(OnInitializeListener)` → void
+  - `c()` → void
+  - `a(EventListener)` → void
+  - `b(EventListener)` → void
+  - `a(String, boolean, String)` → void
+  - `a(String, boolean, boolean, String)` → void
+  - `a(String, boolean, String, String)` → void
+  - `a(String, boolean, boolean, String, String)` → void
+  - `e()` → void
+  - `b(String)` → void
+  - `d(String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(String)` → void
+  - `a()` → void
+  - `a(AudioAttributes)` → void
+  - `a(Locale)` → void
+  - `c(String)` → void
+  - `a(int)` → void
+- **Tts** (class)
+  - `a(Tts, String, boolean, String, int, Object)` → void
+  - `a(Tts, String, boolean, boolean, String, int, Object)` → void
+  - `a(Tts, String, boolean, String, String, int, Object)` → void
+  - `a(Tts, String, boolean, boolean, String, String, int, Object)` → void
+  - `b()` → void
+  - `a(OnInitializeListener)` → void
+  - `c()` → void
+  - `a(EventListener)` → void
+  - `b(EventListener)` → void
+  - `a(AudioAttributes)` → void
+  - `a(String, boolean, String)` → void
+  - `a(String, boolean, boolean, String)` → void
+  - `e()` → void
+  - `b(String)` → void
+  - `d(String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(String)` → void
+  - `a()` → void
+  - `a(Locale)` → void
+  - `c(String)` → void
+  - `a(int)` → void
+  - `a(String, boolean, String, String)` → void
+  - `a(String, boolean, boolean, String, String)` → void
+  - `d()` → AudioAttributes
+- **TtsFactory** (class)
+  - `a(Mode)` → Tts
+- **EventListener** (interface)
+  - `onStart()` → void
+  - `onReady()` → void
+  - `onDone()` → void
+  - `onError(ErrorType)` → void
+  - `onStop()` → void
+  - `onUpdatedRms(double)` → void
+- **OnInitializeListener** (interface)
+  - `onSuccess()` → void
+  - `onFailure(ErrorType)` → void
+- **OnServerConnectionListener** (interface)
+  - `onConnected()` → void
+  - `onFailed(ErrorType)` → void
+- **TtsCallback** (class)
+  - `a(EventListener)` → void
+  - `b(EventListener)` → void
+  - `a(OnServerConnectionListener)` → void
+  - `onResponse(String, String)` → void
+  - `a(ErrorType)` → void
+- **TtsServiceManager** (class)
+  - `a(TtsServiceManager, String, boolean, String, int, Object)` → void
+  - `a(TtsServiceManager, String, boolean, boolean, String, int, Object)` → void
+  - `a(TtsServiceManager, Continuation)` → Object
+  - `a(TtsServiceManager)` → String
+  - `d(TtsServiceManager)` → UAWrapper
+  - `b(TtsServiceManager)` → Channel
+  - `c(TtsServiceManager)` → Tts
+  - `a(Mode)` → void
+  - `b()` → void
+  - `a(OnInitializeListener)` → void
+  - `c()` → void
+  - `a(EventListener)` → void
+  - `b(EventListener)` → void
+  - `a(AudioAttributes)` → void
+  - `d()` → void
+  - `a(String, boolean, String)` → void
+  - `a(String, boolean, boolean, String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(String)` → void
+  - `a()` → void
+  - `a(Locale)` → void
+  - `c(String)` → void
+  - `a(int)` → void
+  - `b(String)` → void
+  - `d(String)` → void
+  - `a(boolean)` → void
+  - `a(String, String, String, Unit>, String, Unit>)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+- **UARepository** (class)
+  - `a(UARepository)` → String
+  - `a(String, String, String, Unit>, Unit>)` → void
+  - `a(String, Unit>, Unit>)` → void
+  - `a(Unit>, Unit>)` → void
+  - `a(EnvironmentType)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+- **UAWrapper** (class)
+  - `b(UAWrapper)` → String
+  - `a(UAWrapper)` → Context
+  - `a(String, String, String, Unit>, String, Unit>)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+  - `a(Unit>, String, Unit>)` → void
+  - `a(EnvironmentType)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+- **Log** (class)
+  - `a(String, String)` → void
+  - `c(String, String)` → void
+  - `b(String, String)` → void
+  - `d(String, String)` → void
+- **StringUtils** (class)
+  - `a(String)` → String
+
+## SpeechToText (바이너리에서 추출)
+
+- **IOnDeviceStt** (interface)
+  - `registerCallback(ISttCallback, String)` → void
+  - `unregisterCallback(ISttCallback)` → void
+  - `request(String)` → void
+  - `close()` → void
+  - `send(byte[], String)` → void
+  - `sendCallAudio(String, byte[], String)` → void
+  - `requestCompleteSendBuffer(String, String)` → void
+  - `setLocale(String, String)` → void
+  - `showSensorPrivacyDialog(int, String)` → void
+- **IStt** (interface)
+  - `registerCallback(ISttCallback, String)` → void
+  - `unregisterCallback(ISttCallback)` → void
+  - `setEicServer(int, String, String, String)` → void
+  - `request(String)` → void
+  - `close(String)` → void
+  - `updateEicContextInfo(String, String)` → void
+  - `setSpeechLanguageCode(String)` → void
+  - `setEnableSpeechSourceSeparation(boolean)` → void
+  - `setSpeakerRecognitionMethod(int)` → void
+  - `setProfileId(String)` → void
+  - `setIsFirstForEnrollOpt(boolean)` → void
+  - `setScriptForEnrollOpt(String)` → void
+  - `requestWithoutRecording(String)` → void
+  - `sendRecognitionAudio(byte[], boolean)` → void
+  - `setWakeUpWordConfig(String)` → void
+  - `setLMBoostConfig(String)` → void
+  - `setLocale(String, String)` → void
+  - `registerApp(int, String, String, String, String)` → void
+  - `closeGrpcConnection(String)` → void
+  - `setMode(String, String)` → void
+  - `showSensorPrivacyDialog(int, String)` → void
+  - `requestWithUaToken(String, String, String)` → void
+  - `requestWithoutRecordingWithUaToken(String, String, String)` → void
+  - `requestForSpeechV2(String, String)` → void
+  - `requestWithoutRecordingForSpeechV2(String, String)` → void
+  - `setWakeUpWordConfigV2(byte[], String)` → void
+  - `setLMBoostConfigV2(String, String)` → void
+- **ISttCallback** (interface)
+  - `onResponse(String, String)` → void
+- **BuildConfig** (class)
+- **SpeechToText** (class)
+  - `initialize()` → void
+  - `initialize(OnInitializeListener)` → void
+  - `release()` → void
+  - `addListener(ResultListener)` → void
+  - `removeListener(ResultListener)` → void
+  - `registerApp(String, String, OnServerConnectionListener)` → void
+  - `registerApp(String, String, String, Unit>, String, Unit>)` → void
+  - `registerApp(String, Unit>, String, Unit>)` → void
+  - `request()` → void
+  - `stop()` → void
+  - `sendAudio(byte[])` → void
+  - `completeAudioSend()` → void
+  - `setLocale(Locale)` → void
+  - `getCallApi()` → CallApi
+  - `getAmbientAi()` → AmbientAiApi
+- **AmbientAiApi** (interface)
+  - `setRecognitionResultListener(AmbientAiRecognitionResultListener)` → void
+  - `updateEicContextInfo(String)` → void
+  - `setEnableSpeechSourceSeparation(boolean)` → void
+  - `setSpeakerRecognitionMethod(int)` → void
+  - `setProfileId(String)` → void
+  - `setIsFirstForEnrollOpt(boolean)` → void
+  - `setScriptForEnrollOpt(String)` → void
+  - `requestWithoutRecording(String)` → void
+  - `sendRecognitionAudio(byte[], boolean)` → void
+  - `setWakeUpWordConfig(WakeUpWordConfig)` → void
+  - `setLMBoostConfig(LMBoostConfig)` → void
+  - `request(String)` → void
+- **ApiChecker** (class)
+  - `b(Context)` → void
+  - `a(Context)` → void
+- **CallApi** (interface)
+  - `sendTxAudio(byte[], RecognitionResultListener)` → void
+  - `sendRxAudio(byte[], RecognitionResultListener)` → void
+  - `completeTxAudioSend()` → void
+  - `completeRxAudioSend()` → void
+- **PrivilegedApi** (interface)
+- **AmbientAiApiImpl** (class)
+  - `setRecognitionResultListener(AmbientAiRecognitionResultListener)` → void
+  - `updateEicContextInfo(String)` → void
+  - `setEnableSpeechSourceSeparation(boolean)` → void
+  - `setSpeakerRecognitionMethod(int)` → void
+  - `setProfileId(String)` → void
+  - `setIsFirstForEnrollOpt(boolean)` → void
+  - `setScriptForEnrollOpt(String)` → void
+  - `requestWithoutRecording(String)` → void
+  - `request(String)` → void
+  - `sendRecognitionAudio(byte[], boolean)` → void
+  - `setWakeUpWordConfig(WakeUpWordConfig)` → void
+  - `setLMBoostConfig(LMBoostConfig)` → void
+- **CallApiImpl** (class)
+  - `sendTxAudio(byte[], RecognitionResultListener)` → void
+  - `sendRxAudio(byte[], RecognitionResultListener)` → void
+  - `completeTxAudioSend()` → void
+  - `completeRxAudioSend()` → void
+- **AudioBufferType** (class)
+- **ConversationInfo** (class)
+  - `getConversationId()` → String
+  - `getConversationSeq()` → String
+- **EpdState** (class)
+- **ErrorType** (class)
+- **ErrorTypeKt** (class)
+  - `toErrorType(String)` → ErrorType
+- **EventCommand** (class)
+- **Mode** (class)
+- **ServiceConstants** (class)
+  - `getConst()` → String
+- **SttFinalResult** (class)
+  - `getAsrText()` → String
+  - `getSpeakerId()` → String
+  - `getEpdOn()` → long
+  - `getEpdOff()` → long
+- **Alternative** (class)
+  - `getTranscript()` → String
+  - `getConfidence()` → float
+  - `getTokenSequence()` → String
+- **InferenceSource** (class)
+- **LMBoostConfig** (class)
+  - `getPhrases()` → String
+  - `getTriggers()` → String
+- **RecognitionFinalResult** (class)
+  - `getEpdOn()` → long
+  - `getEpdOff()` → long
+  - `getResults()` → RecognitionResult>
+  - `getSpeaker()` → Speaker
+  - `getInferenceSource()` → InferenceSource
+- **RecognitionResult** (class)
+  - `getAlternatives()` → Alternative>
+  - `getLanguageCode()` → String
+  - `getSpeaker()` → Speaker
+  - `isWakeUpWord()` → boolean
+- **Speaker** (class)
+  - `getSpeakerId()` → String
+- **WakeUpWordConfig** (class)
+  - `getName()` → String
+  - `getLocaleCode()` → String
+  - `getAudio()` → byte[]
+  - `getOnset()` → float
+  - `getOffset()` → float
+  - `getProbability()` → float
+  - `getVersion()` → String
+- **EventBus** (class)
+  - `a()` → String>
+  - `a(String)` → void
+- **OnDeviceStt** (class)
+  - `a(OnDeviceStt, Continuation)` → Object
+  - `c(OnDeviceStt)` → String
+  - `d(OnDeviceStt)` → SttCallback
+  - `a(OnDeviceStt)` → void
+  - `b(OnDeviceStt)` → Context
+  - `e(OnDeviceStt)` → boolean
+  - `a(OnDeviceStt, IOnDeviceStt, String)` → boolean
+  - `a(OnDeviceStt, IOnDeviceStt)` → boolean
+  - `f(OnDeviceStt)` → void
+  - `c(OnDeviceStt, IOnDeviceStt)` → boolean
+  - `a(OnDeviceStt, IOnDeviceStt, boolean)` → void
+  - `b(OnDeviceStt, IOnDeviceStt)` → void
+  - `d(OnDeviceStt, IOnDeviceStt)` → void
+  - `a(OnDeviceStt, boolean)` → Pair
+  - `d(String)` → void
+  - `e()` → void
+  - `c()` → void
+  - `a(OnInitializeListener)` → void
+  - `d()` → void
+  - `a(boolean, String)` → void
+  - `a()` → void
+  - `a(RecognitionResultListener)` → void
+  - `b(RecognitionResultListener)` → void
+  - `a(int, String, String)` → void
+  - `a(byte[], String)` → void
+  - `a(String)` → void
+  - `c(byte[], String)` → void
+  - `b(byte[], String)` → void
+  - `c(String)` → void
+  - `b(String)` → void
+  - `g(String)` → void
+  - `a(boolean)` → void
+  - `a(int)` → void
+  - `e(String)` → void
+  - `b(boolean)` → void
+  - `f(String)` → void
+  - `a(AmbientAiRecognitionResultListener)` → void
+  - `a(byte[], boolean)` → void
+  - `a(WakeUpWordConfig)` → void
+  - `a(LMBoostConfig)` → void
+  - `a(Locale, String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `b()` → void
+  - `a(boolean, String, String)` → void
+- **ServerStt** (class)
+  - `a(ServerStt, Continuation)` → Object
+  - `e(ServerStt)` → String
+  - `h(ServerStt)` → SttCallback
+  - `a(ServerStt)` → void
+  - `b(ServerStt)` → Context
+  - `i(ServerStt)` → boolean
+  - `f(ServerStt)` → int
+  - `a(ServerStt, int)` → void
+  - `d(ServerStt)` → long
+  - `g(ServerStt)` → long
+  - `a(ServerStt, long)` → void
+  - `c(ServerStt)` → Gson
+  - `b(ServerStt, boolean)` → void
+  - `j(ServerStt)` → boolean
+  - `b(ServerStt, IStt, String)` → boolean
+  - `a(ServerStt, IStt, String)` → boolean
+  - `a(ServerStt, IStt)` → boolean
+  - `k(ServerStt)` → void
+  - `c(ServerStt, IStt)` → boolean
+  - `a(ServerStt, IStt, boolean)` → void
+  - `b(ServerStt, IStt)` → void
+  - `d(ServerStt, IStt)` → void
+  - `a(ServerStt, boolean)` → Pair
+  - `d(String)` → void
+  - `e()` → void
+  - `c()` → void
+  - `a(OnInitializeListener)` → void
+  - `d()` → void
+  - `a(RecognitionResultListener)` → void
+  - `b(RecognitionResultListener)` → void
+  - `a(boolean, String)` → void
+  - `a()` → void
+  - `a(int, String, String)` → void
+  - `a(byte[], String)` → void
+  - `a(String)` → void
+  - `c(byte[], String)` → void
+  - `b(byte[], String)` → void
+  - `c(String)` → void
+  - `b(String)` → void
+  - `g(String)` → void
+  - `a(boolean)` → void
+  - `a(int)` → void
+  - `e(String)` → void
+  - `b(boolean)` → void
+  - `f(String)` → void
+  - `a(AmbientAiRecognitionResultListener)` → void
+  - `a(byte[], boolean)` → void
+  - `a(WakeUpWordConfig)` → void
+  - `a(LMBoostConfig)` → void
+  - `a(Locale, String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `b()` → void
+  - `a(boolean, String, String)` → void
+- **Stt** (class)
+  - `a(Stt, boolean, String, int, Object)` → void
+  - `a(Stt, boolean, String, String, int, Object)` → void
+  - `d(String)` → void
+  - `e()` → void
+  - `c()` → void
+  - `a(OnInitializeListener)` → void
+  - `d()` → void
+  - `a(boolean, String)` → void
+  - `a()` → void
+  - `a(RecognitionResultListener)` → void
+  - `b(RecognitionResultListener)` → void
+  - `a(int, String, String)` → void
+  - `a(byte[], String)` → void
+  - `a(String)` → void
+  - `c(byte[], String)` → void
+  - `b(byte[], String)` → void
+  - `c(String)` → void
+  - `b(String)` → void
+  - `g(String)` → void
+  - `a(boolean)` → void
+  - `a(int)` → void
+  - `e(String)` → void
+  - `b(boolean)` → void
+  - `f(String)` → void
+  - `a(AmbientAiRecognitionResultListener)` → void
+  - `a(byte[], boolean)` → void
+  - `a(WakeUpWordConfig)` → void
+  - `a(LMBoostConfig)` → void
+  - `a(Locale, String)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `b()` → void
+  - `a(boolean, String, String)` → void
+- **SttFactory** (class)
+  - `a(Mode)` → Stt
+- **AmbientAiRecognitionResultListener** (interface)
+  - `onUpdated(String, String, boolean)` → void
+  - `onUpdatedEpdState(int)` → void
+  - `onUpdatedConversationInfo(String, String)` → void
+  - `onError(ErrorType)` → void
+  - `onReadyToSendBuffer()` → void
+  - `onUpdateRecognitionFinalResult(RecognitionFinalResult)` → void
+- **OnInitializeListener** (interface)
+  - `onSuccess()` → void
+  - `onFailure(ErrorType)` → void
+- **OnServerConnectionListener** (interface)
+  - `onConnected()` → void
+  - `onFailed(ErrorType)` → void
+- **RecognitionResultListener** (interface)
+  - `onUpdated(String, boolean)` → void
+  - `onUpdatedEpdData(long, long)` → void
+- **ResultListener** (interface)
+  - `onUpdated(String, boolean)` → void
+  - `onUpdatedEpdData(long, long)` → void
+  - `onStartedRecognition()` → void
+  - `onEndedRecognition()` → void
+  - `onError(ErrorType)` → void
+  - `onReady()` → void
+  - `onUpdatedRms(double)` → void
+- **SttCallback** (class)
+  - `setTxAudioListener(RecognitionResultListener)` → void
+  - `setRxAudioListener(RecognitionResultListener)` → void
+  - `setAmbientAiRecognitionResultListener(AmbientAiRecognitionResultListener)` → void
+  - `setServerConnectionListener(OnServerConnectionListener)` → void
+  - `onResponse(String, String)` → void
+- **SttServiceManager** (class)
+  - `createStt(Mode)` → void
+  - `connectService()` → void
+  - `connectService(OnInitializeListener)` → void
+  - `disconnectService()` → void
+  - `setAmbientAiRecognitionResultListener(AmbientAiRecognitionResultListener)` → void
+  - `setRxAudioListener(RecognitionResultListener)` → void
+  - `setTxAudioListener(RecognitionResultListener)` → void
+  - `requestSpeechStream(boolean, String)` → void
+  - `closeStream()` → void
+  - `send(byte[])` → void
+  - `completeAudioSend()` → void
+  - `sendTxAudio(byte[])` → void
+  - `sendRxAudio(byte[])` → void
+  - `completeTxAudioSend()` → void
+  - `completeRxAudioSend()` → void
+  - `updateEicContextInfo(String)` → void
+  - `setEnableSpeechSourceSeparation(boolean)` → void
+  - `setSpeakerRecognitionMethod(int)` → void
+  - `setProfileId(String)` → void
+  - `setIsFirstForEnrollOpt(boolean)` → void
+  - `setScriptForEnrollOpt(String)` → void
+  - `sendRecognitionAudio(byte[], boolean)` → void
+  - `setWakeUpWordConfig(WakeUpWordConfig)` → void
+  - `setLMBoostConfig(LMBoostConfig)` → void
+  - `setLocale(Locale)` → void
+  - `registerApp(String, String, OnServerConnectionListener)` → void
+  - `closeGrpcConnection()` → void
+  - `useUaSdk(boolean)` → void
+  - `registerApp(String, String, String, Unit>, String, Unit>)` → void
+  - `registerApp(String, Unit>, String, Unit>)` → void
+- **UARepository** (class)
+  - `a(UARepository)` → String
+  - `a(String, String, String, Unit>, Unit>)` → void
+  - `a(String, Unit>, Unit>)` → void
+  - `a(Unit>, Unit>)` → void
+  - `a(EnvironmentType)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+- **UAWrapper** (class)
+  - `b(UAWrapper)` → String
+  - `a(UAWrapper)` → Context
+  - `a(String, String, String, Unit>, String, Unit>)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+  - `a(Unit>, String, Unit>)` → void
+  - `a(EnvironmentType)` → void
+  - `a(String, Unit>, String, Unit>)` → void
+- **Log** (class)
+  - `a(String, String)` → void
+  - `c(String, String)` → void
+  - `b(String, String)` → void
+  - `d(String, String)` → void
+- **StringUtils** (class)
+  - `a(String)` → String
+- **SttViewModel** (class)
+  - `a(SttViewModel, String, boolean, int, Object)` → void
+  - `a(SttViewModel)` → String
+  - `a(ResultListener)` → void
+  - `b(ResultListener)` → void
+  - `a(String, boolean)` → void
+  - `a(long, long)` → void
+  - `c()` → void
+  - `b()` → void
+  - `a(String)` → void
+  - `a()` → void
+  - `b(String)` → void
+
+## LLM (바이너리에서 추출)
+
+- **ILLMCallback** (interface)
+  - `onResponse(String, String, String)` → void
+- **IOnDeviceLLM** (interface)
+  - `registerCallback(ILLMCallback, String)` → void
+  - `unregisterCallback(ILLMCallback)` → void
+  - `initialize(String)` → void
+  - `isRunning(String, String)` → void
+  - `generateContentStream(String, String, String)` → void
+  - `startChat(String, String)` → void
+  - `sendMessageStream(String, String, String)` → void
+- **IServerLLM** (interface)
+  - `registerCallback(ILLMCallback, String)` → void
+  - `unregisterCallback(ILLMCallback)` → void
+  - `initialize(String)` → void
+  - `isRunning(String, String)` → void
+  - `generateContent(String, String, String)` → void
+  - `startChat(String, String)` → void
+  - `sendMessage(String, String, String)` → void
+  - `setModelParameter(String, String, String, String)` → void
+  - `registerApp(int, String, String, String, String)` → void
+- **BuildConfig** (class)
+- **LLM** (class)
+  - `initialize()` → void
+  - `release()` → void
+  - `generateContent(String, ResultListener)` → void
+  - `generateContentStream(String, ResultListener)` → void
+  - `startChat(LLMContent>, Unit>, String, Unit>)` → void
+  - `sendMessage(LLMContent, ResultListener)` → void
+  - `sendMessageStream(LLMContent, ResultListener)` → void
+  - `getPromptsContents()` → String
+  - `setModelParameter(ModelParameter, String, ResultListener)` → void
+  - `registerApp(String, String, OnServerConnectionListener)` → void
+  - `setServerType(int)` → void
+- **ApiChecker** (class)
+  - `b(Context)` → void
+  - `a(Context)` → void
+- **PrivilegedApi** (interface)
+- **EventType** (class)
+- **Mode** (class)
+- **ServiceType** (class)
+  - `getAction()` → String
+  - `getPackageName()` → String
+  - `getComponentName()` → String
+- **BlobPart** (class)
+  - `getMimeType()` → String
+  - `getBlob()` → byte[]
+- **FileDataPart** (class)
+  - `getUri()` → String
+  - `getMimeType()` → String
+- **ImagePart** (class)
+  - `getImage()` → Bitmap
+- **LLMContent** (class)
+  - `getRole()` → String
+  - `getParts()` → Part>
+  - `setParts(Part>)` → void
+- **ModelParameter** (class)
+- **Part** (interface)
+- **PartTypeAdapter** (class)
+  - `write(JsonWriter, Part)` → void
+  - `read(JsonReader)` → Part
+  - `write(JsonWriter, Object)` → void
+  - `read(JsonReader)` → Object
+- **TextPart** (class)
+  - `getText()` → String
+- **LLMFactory** (class)
+  - `a(Mode)` → LLMInterface
+- **LLMInterface** (class)
+  - `a(LLMInterface, String, List, Function0, Function1, int, Object)` → void
+  - `a()` → void
+  - `b()` → void
+  - `a(String)` → void
+  - `a(String, LLMContent>, Unit>, String, Unit>)` → void
+  - `a(String, String, ResultListener)` → void
+  - `a(String, LLMContent, ResultListener)` → void
+  - `a(String, ModelParameter, String, ResultListener)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(int)` → void
+  - `b(String, String, ResultListener)` → void
+  - `b(String, LLMContent, ResultListener)` → void
+  - `c()` → String
+- **OnDeviceLLM** (class)
+  - `d(OnDeviceLLM)` → String
+  - `a(OnDeviceLLM, IOnDeviceLLM)` → void
+  - `a(OnDeviceLLM, String)` → void
+  - `a(OnDeviceLLM)` → Context
+  - `c(OnDeviceLLM)` → IOnDeviceLLM
+  - `e(OnDeviceLLM)` → LLMServiceCallback
+  - `b(OnDeviceLLM)` → Gson
+  - `a()` → void
+  - `b()` → void
+  - `a(String)` → void
+  - `b(String, String, ResultListener)` → void
+  - `a(String, LLMContent>, Unit>, String, Unit>)` → void
+  - `a(String, String, ResultListener)` → void
+  - `a(String, LLMContent, ResultListener)` → void
+  - `b(String, LLMContent, ResultListener)` → void
+  - `c()` → String
+  - `a(String, ModelParameter, String, ResultListener)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(int)` → void
+- **ServerLLM** (class)
+  - `e(ServerLLM)` → String
+  - `a(ServerLLM, IServerLLM)` → void
+  - `a(ServerLLM, String)` → void
+  - `a(ServerLLM)` → Context
+  - `d(ServerLLM)` → IServerLLM
+  - `f(ServerLLM)` → LLMServiceCallback
+  - `c(ServerLLM)` → Gson
+  - `b(ServerLLM)` → int
+  - `a()` → void
+  - `b()` → void
+  - `a(String)` → void
+  - `b(String, String, ResultListener)` → void
+  - `a(String, LLMContent>, Unit>, String, Unit>)` → void
+  - `a(String, String, ResultListener)` → void
+  - `a(String, LLMContent, ResultListener)` → void
+  - `b(String, LLMContent, ResultListener)` → void
+  - `c()` → String
+  - `a(String, ModelParameter, String, ResultListener)` → void
+  - `a(String, String, OnServerConnectionListener)` → void
+  - `a(int)` → void
+- **OnServerConnectionListener** (interface)
+  - `onConnected()` → void
+  - `onFailed(String)` → void
+- **ResultListener** (interface)
+  - `onResponse(String, boolean)` → void
+  - `onError(String)` → void
+- **RetrofitApiInterface** (interface)
+  - `a(JsonObject, TokenData>>)` → Object
+- **NetworkConstants** (class)
+  - `a(String)` → NetworkConstants
+  - `b()` → String
+- **TokenData** (class)
+  - `a(TokenData, String, Long, String, String, Boolean, int, Object)` → TokenData
+  - `f()` → String
+  - `g()` → Long
+  - `i()` → String
+  - `j()` → String
+  - `h()` → Boolean
+  - `a()` → String
+  - `b()` → Long
+  - `c()` → String
+  - `d()` → String
+  - `e()` → Boolean
+  - `a(String, Long, String, String, Boolean)` → TokenData
+- **LLMServiceCallback** (class)
+  - `setServerConnectionListener(OnServerConnectionListener)` → void
+  - `onResponse(String, String, String)` → void
+- **LLMServiceManager** (class)
+  - `createLLM(Mode)` → void
+  - `connectService()` → void
+  - `disconnectService()` → void
+  - `initialize(String)` → void
+  - `generateContent(String, ResultListener)` → void
+  - `generateContentStream(String, ResultListener)` → void
+  - `startChat(LLMContent>, Unit>, String, Unit>)` → void
+  - `sendMessage(LLMContent, ResultListener)` → void
+  - `sendMessageStream(LLMContent, ResultListener)` → void
+  - `getPromptsContents()` → String
+  - `setModelParameter(ModelParameter, String, ResultListener)` → void
+  - `registerApp(String, String, OnServerConnectionListener)` → void
+  - `setServerType(int)` → void
+- **ModelManager** (class)
+  - `getRequestListeners()` → ResultListener>
+  - `isRunning()` → boolean
+  - `setRunning(boolean)` → void
+  - `getPromptsContents()` → String
+  - `updatePromptsContents(String)` → void
+- **ServiceConstants** (class)
+  - `getConst()` → String
+- **Log** (class)
+  - `d(String, String)` → void
+  - `i(String, String)` → void
+  - `e(String, String)` → void
+  - `w(String, String)` → void
+- **StringUtils** (class)
+  - `TAG(String)` → String
+
