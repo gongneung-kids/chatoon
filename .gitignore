@@ -36,7 +36,7 @@ captures/
 *.log
 ~$*
 
-# 시연 영상은 tools/demo_video.py로 다시 만들 수 있어 저장소에 올리지 않는다(제출은 링크로)
+# 시연 영상 작업본은 올리지 않는다. 제출본(최종)만 docs/demo/에 둔다(메일에도 파일로 첨부)
 contests/hmg-vehicle-app/submissions/*.mp4
 
 # 실험 폴더의 영상·녹화 원본은 커밋하지 않음(용량). 결과 요약·캡처 png는 커밋
