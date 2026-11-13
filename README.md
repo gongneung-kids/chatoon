@@ -1,6 +1,6 @@
 # 차툰
 
-**운전한 한두 시간은 대개 "그냥 이동한 시간"으로 잊힙니다. 차툰은 그사이 차가 본 일을 네 컷 만화로 남깁니다.**
+**하루 중 별것 아닌 이동으로 여겨져 금세 잊히는 운전 시간, 차툰은 그사이 차가 본 순간을 네 컷 만화로 남깁니다.**
 
 창문을 내린 때, 비가 와 와이퍼를 켠 때, 급하게 선 때. 주차하면 그 주행이 차의 눈으로 그린 네 컷 한 화가 되고, 화가 쌓이면 지나간 운전을 회차 넘기듯 돌아볼 수 있습니다. 현대자동차그룹 차량용 앱 개발 공모전(Code your App into Pleos App Market) 출품작이고, Pleos Connect에서 돕니다.
 
@@ -45,7 +45,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 앱 이름 및 한 줄 소개 | **차툰** — 운전한 한두 시간은 대개 "그냥 이동한 시간"으로 잊힙니다. 차툰은 그사이 차가 본 일(창문을 내린 때, 비가 와 와이퍼를 켠 때, 급하게 선 때)을 주차할 때마다 네 컷 만화로 그려, 지나간 운전을 다시 꺼내 볼 수 있게 하는 Pleos 차량용 앱입니다. |
+| 앱 이름 및 한 줄 소개 | **차툰** — 하루 중 별것 아닌 이동으로 여겨져 금세 잊히는 운전 시간에 차가 본 순간(비가 와 와이퍼를 켠 때, 창문을 내린 때, 급하게 선 때)을, 주차할 때마다 네 컷 만화로 그려 다시 볼 수 있게 하는 Pleos 차량용 앱입니다. |
 | 실행 방법 | ① 설치: `adb install apk/공릉동아이들_차툰_release.apk` ② 실행: `adb shell am start --user 10 -n kr.chatoon.app/.ui.MainActivity` ③ 첫 화면에서 **동의하고 시작하기** ④ 주행 한 번: 가상 콘솔에서 기어를 D로 바꾸고, 와이퍼·창문을 켜 보고, R·D를 오간 뒤 P로 두면(또는 `python3 tools/vc.py scenario parking`) **이번 화**에 그 주행의 네 컷이 나오고, 평소와 다른 주행이었으면 차가 묻습니다. 소스 빌드는 [app/README.md](app/README.md) |
 | 테스트 환경 및 필요한 설정 | Android Studio + **Pleos Connect v2.1.0 에뮬레이터**(Android API 34, `system-images;android-34;pleos_car_emulator;arm64-v8a`, Cold boot, RAM 4GB). **화면 규격**: 가로 2560×1440px, 160dpi(1dp = 1px). 앱은 그 안의 창에 뜨며 창 크기는 1682×1210px(기본)입니다. 주행 재현은 Virtual Console(`adb forward tcp:8088 tcp:8088`)로 기어·와이퍼·속도·창문·공조·열선을 바꿉니다(`python3 tools/vc.py set …`, `scenario …`). 급하게 선 순간과 세게 밟은 순간은 앱에서 차량 속도 권한을 켜야 셉니다. 달리는 동안(D단)에는 Pleos가 앱 화면을 가리므로 만화는 P단에서 봅니다. 실내 조명 연출은 설정에서 켜고, 가상 콘솔의 실내 조명 값으로 확인합니다. 빌드: Gradle 9.8.2, AGP 9.5.0, minSdk 28, Pleos SDK `Vehicle 2.3.2`·`TextToSpeech 3.3.1`·`SpeechToText 3.3.1`(공개 Maven, 계정 불필요). 자세한 설치는 [Pleos 플랫폼 정리](docs/pleos-platform.md) |
 | APK 위치 또는 Release 링크 | [`apk/`](apk/) 폴더의 `공릉동아이들_차툰_release.apk` (release, 서명됨) |

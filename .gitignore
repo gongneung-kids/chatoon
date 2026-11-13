@@ -42,3 +42,4 @@ contests/hmg-vehicle-app/submissions/*.mp4
 # 실험 폴더의 영상·녹화 원본은 커밋하지 않음(용량). 결과 요약·캡처 png는 커밋
 research/experiments/**/*.mp4
 research/experiments/**/parts/
+contests/hmg-vehicle-app/submissions/공릉동아이들_*

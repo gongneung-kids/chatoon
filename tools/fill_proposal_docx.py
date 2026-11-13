@@ -170,7 +170,7 @@ def para(inner: str, *, before: int = 0, after: int = 60, ind: str = "", num: bo
     return f"<w:p><w:pPr>{''.join(ppr)}</w:pPr>{inner}</w:p>"
 
 
-def table(rows: list[list[str]]) -> str:
+def table(rows: list[list[str]], keep: bool = True) -> str:
     cols = max(len(r) for r in rows)
     # 열 폭: 본문 행 글자 수의 평균에 비례(가장 긴 칸 하나에 끌려가지 않게), 최소 6자·최대 200자로 자름
     weights = []
@@ -204,7 +204,7 @@ def table(rows: list[list[str]]) -> str:
             shade = '<w:shd w:val="clear" w:color="auto" w:fill="EEF2F6"/>' if header else ""
             xml.append(
                 f'<w:tc><w:tcPr><w:tcW w:w="{widths[c]}" w:type="dxa"/>{shade}</w:tcPr>'
-                f"{para(runs(text, SMALL_SZ + 1, HEAD_COLOR if header else None, bold=header), after=0, keep_next=r_i <= 1)}</w:tc>"
+                f"{para(runs(text, SMALL_SZ + 1, HEAD_COLOR if header else None, bold=header), after=0, keep_next=keep and r_i <= 1)}</w:tc>"
             )
         xml.append("</w:tr>")
     xml.append("</w:tbl>")
@@ -212,7 +212,9 @@ def table(rows: list[list[str]]) -> str:
     return "".join(xml) + para("", after=40)
 
 
-def section_xml(lines: list[str], media: "Media") -> str:
+def section_xml(lines: list[str], media: "Media", keep: bool = True) -> str:
+    """keep=False: 양식 칸(표 한 칸) 안. Word는 칸 안 문단에 keepNext가 있으면 쪽보다 긴 칸을 통째로 다음 쪽으로 밀어
+    큰 빈 쪽이 생긴다(LibreOffice는 그렇지 않아 렌더 확인에서 안 보였다). 그래서 칸 안에서는 keepNext를 쓰지 않는다."""
     xml = []
     items = blocks(lines)
     for n, (kind, content) in enumerate(items):
@@ -222,7 +224,7 @@ def section_xml(lines: list[str], media: "Media") -> str:
             caption, path = content
             xml.append(media.figure(CONTEST / path, caption, int(CELL_WIDTH * 0.8)))  # 그림은 칸 폭의 80%(쪽 수를 줄임, 글자는 그대로 읽힘)
         elif kind == "table":
-            xml.append(table(content))
+            xml.append(table(content, keep))
         elif kind == "bullet":
             xml.append(para(runs(content), num=True, after=40))
         elif kind == "num":
@@ -234,9 +236,9 @@ def section_xml(lines: list[str], media: "Media") -> str:
         else:
             is_heading = content.startswith("**") and content.count("**") == 2 and content.endswith("**")
             if is_heading:
-                xml.append(para(runs(content, BODY_SZ + 1, HEAD_COLOR), before=100, after=40, keep_next=True))
+                xml.append(para(runs(content, BODY_SZ + 1, HEAD_COLOR), before=100, after=40, keep_next=keep))
             else:
-                xml.append(para(runs(content), after=60, keep_next=before_block))
+                xml.append(para(runs(content), after=60, keep_next=keep and before_block))
     return "".join(xml) or para("")
 
 
@@ -371,7 +373,7 @@ def fill(template: Path, draft: Path, out: Path) -> None:
             tbl = t.group(0).replace("<w:cantSplit/>", "", 1)
             tc_start = tbl.index("</w:tcPr>") + len("</w:tcPr>")
             tc_end = tbl.rindex("</w:tc>")
-            content = section_xml(sections[n], media)
+            content = section_xml(sections[n], media, keep=False)
             if n == 7:
                 content += screens_xml(media)
             new_part.append(part[last:t.start()])
