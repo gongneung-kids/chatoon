@@ -24,4 +24,4 @@
 | 11-13 | [심사위원 관점 점검](2026-11-13-judge-audit/README.md) | debug, release | 심사 항목과 차량 앱 품질 지침으로 화면을 보고 지적한 것과 고친 결과(운전 시간 표시, 차가 본 것 칩, 네 컷 구도, 동의서 문장 등) |
 | 11-13 | [점검 지적 고치기](2026-11-13-judge-fixes/README.md) | debug | 위 점검에서 나온 지적을 고친 화면 |
 | 11-13 | [release(R8) 최종 확인 4차](2026-11-13-chatoon-release-4/README.md) | release | 소개 → 동의 → 여러 일이 겹친 주행 → 질문 → 답까지. CPU 3.99%·3.33%, PSS 최대 41.5MB(기준 5% 미만, 400MB 이하) |
-| 11-13 | [제출한 APK 그대로 확인](2026-11-13-chatoon-submitted-apk/README.md) | release(제출 파일) | `apk/공릉동아이들_차툰_release.apk`를 그대로 설치해 소개 → 동의 → 주행 → 질문 → 답 → 다시 그리기. 비정상 종료 0 |
+| 11-13 | [제출한 APK 그대로 확인](2026-11-13-chatoon-submitted-apk/README.md) | release(제출 파일) | `apk/공릉동아이들_차툰_release.apk`(11/14 `apk/HumanFirst_차툰_release.apk`로 이름만 바꿈, 같은 파일)를 그대로 설치해 소개 → 동의 → 주행 → 질문 → 답 → 다시 그리기. 비정상 종료 0 |

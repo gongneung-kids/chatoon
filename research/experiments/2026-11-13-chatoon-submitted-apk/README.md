@@ -36,7 +36,7 @@ release 4차 확인(25fdcdc0)은 제출 APK보다 앞선 빌드였다. 그래서
 
 | 항목 | 값 |
 |---|---|
-| APK | `apk/공릉동아이들_차툰_release.apk`, sha256 `a4188ec9f8548395635aabfb73d493213dea307fe809563ef15404d6f576605c`, 16,123,996바이트 |
+| APK | `apk/공릉동아이들_차툰_release.apk`(11/14 팀명 통일로 `apk/HumanFirst_차툰_release.apk`로 이름만 바꿈, 내용·sha256 같음), sha256 `a4188ec9f8548395635aabfb73d493213dea307fe809563ef15404d6f576605c`, 16,123,996바이트 |
 | 서명·release | `CN=Chatoon`, DEBUGGABLE 없음 |
 | 빌드 기준 | a4ccd8b8, 단위 테스트 188개 통과, lintDebug·lintRelease 통과 |
 

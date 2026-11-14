@@ -47,9 +47,9 @@
 | 항목 | 내용 |
 | --- | --- |
 | 앱 이름 및 한 줄 소개 | **차툰** — 하루 중 별것 아닌 이동으로 여겨져 금세 잊히는 운전 시간에 차가 본 순간(비가 와 와이퍼를 켠 때, 창문을 내린 때, 급하게 선 때)을, 주차할 때마다 네 컷 만화로 그려 다시 볼 수 있게 하는 Pleos 차량용 앱입니다. |
-| 실행 방법 | ① 설치: `adb install apk/공릉동아이들_차툰_release.apk` ② 실행: `adb shell am start --user 10 -n kr.chatoon.app/.ui.MainActivity` ③ 첫 화면(소개)에서 **시작하기** → 동의 화면에서 **동의하고 시작하기**(알림 허용 창이 뜨면 허용) ④ 주행 한 번: 가상 콘솔에서 기어를 D로 바꾸고, 와이퍼·창문을 켜 보고, R·D를 오간 뒤 P로 두면(또는 저장소 루트에서 `python3 tools/vc.py scenario parking`) **이번 화**에 그 주행의 네 컷이 나오고, 평소와 다른 주행이었으면 차가 묻습니다. 앱 화면이 「주행 중에는 사용할 수 없습니다」로 가려져 있으면 콘솔 기어가 D인 것이니 P로 바꿉니다(`python3 tools/vc.py set gear Park`). R 기어를 쓴 뒤 Pleos 후방 카메라 화면이 앞에 남아 있으면 ②의 실행 명령으로 차툰을 다시 엽니다. 소스 빌드는 [app/README.md](app/README.md) |
+| 실행 방법 | ① 설치: `adb install apk/HumanFirst_차툰_release.apk` ② 실행: `adb shell am start --user 10 -n kr.chatoon.app/.ui.MainActivity` ③ 첫 화면(소개)에서 **시작하기** → 동의 화면에서 **동의하고 시작하기**(알림 허용 창이 뜨면 허용) ④ 주행 한 번: 가상 콘솔에서 기어를 D로 바꾸고, 와이퍼·창문을 켜 보고, R·D를 오간 뒤 P로 두면(또는 저장소 루트에서 `python3 tools/vc.py scenario parking`) **이번 화**에 그 주행의 네 컷이 나오고, 평소와 다른 주행이었으면 차가 묻습니다. 앱 화면이 「주행 중에는 사용할 수 없습니다」로 가려져 있으면 콘솔 기어가 D인 것이니 P로 바꿉니다(`python3 tools/vc.py set gear Park`). R 기어를 쓴 뒤 Pleos 후방 카메라 화면이 앞에 남아 있으면 ②의 실행 명령으로 차툰을 다시 엽니다. 소스 빌드는 [app/README.md](app/README.md) |
 | 테스트 환경 및 필요한 설정 | Android Studio + **Pleos Connect v2.1.0 에뮬레이터**(Android API 34, `system-images;android-34;pleos_car_emulator;arm64-v8a`, Cold boot, RAM 4GB). **화면 규격**: 가로 2560×1440px, 160dpi(1dp = 1px). 앱은 그 안의 창에 뜨며 창 크기는 1682×1210px(기본)입니다. 주행 재현은 Virtual Console(`adb forward tcp:8088 tcp:8088`)로 기어·와이퍼·속도·창문·공조·열선을 바꿉니다(`python3 tools/vc.py set …`, `scenario …`). 급하게 선 순간과 세게 밟은 순간은 앱에서 차량 속도 권한을 켜야 셉니다. 달리는 동안(D단)에는 Pleos가 앱 화면을 가리므로 만화는 P단에서 봅니다. 실내 조명 연출은 설정에서 켜고, 가상 콘솔의 실내 조명 값으로 확인합니다. 빌드: Gradle 9.8.2, AGP 9.5.0, minSdk 28, Pleos SDK `Vehicle 2.3.2`·`TextToSpeech 3.3.1`·`SpeechToText 3.3.1`(공개 Maven, 계정 불필요). 자세한 설치는 [Pleos 플랫폼 정리](docs/pleos-platform.md) |
-| APK 위치 또는 Release 링크 | [`apk/`](apk/) 폴더의 `공릉동아이들_차툰_release.apk` (release, 서명됨) |
+| APK 위치 또는 Release 링크 | [`apk/`](apk/) 폴더의 `HumanFirst_차툰_release.apk` (release, 서명됨) |
 
 ## 검증 요약
 
@@ -67,7 +67,7 @@
 ```text
 ├── README.md
 ├── app/                               # 안드로이드 앱(Pleos Connect). 빌드·구조는 app/README.md
-├── apk/                               # 제출용 release APK(공릉동아이들_차툰_release.apk)
+├── apk/                               # 제출용 release APK(HumanFirst_차툰_release.apk)
 ├── contests/hmg-vehicle-app/
 │   ├── 기획서.md                       # 접수양식 02장 1~8번 원문
 │   ├── assets/screens/                 # 기획서와 README의 앱 화면(에뮬레이터 실제 화면)
