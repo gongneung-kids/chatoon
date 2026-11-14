@@ -1,6 +1,6 @@
 # 제출한 APK 파일 그대로 실행 확인 (2026-11-13 21시)
 
-release 4차 확인(25fdcdc0)은 제출 APK보다 앞선 빌드였다. 그래서 제출 저장소 `gongneung-kids/chatoon`의 최종 커밋
+release 4차 확인(25fdcdc0)은 제출 APK보다 앞선 빌드였다. 그래서 제출 저장소 `humanfirst-team/chatoon`의 최종 커밋
 `6fb2a17c6d8829e28014102ed6fefbfb4d59b6a2`에 들어 있는 `apk/공릉동아이들_차툰_release.apk`를 내려받아 그 파일 그대로 설치해 돌렸다.
 
 ## 파일
